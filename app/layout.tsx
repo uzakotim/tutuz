@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: "Tutuz — Learn Uzbek",
   description:
     "Daily Uzbek language exercises for English speakers, levels A1 to B2",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
