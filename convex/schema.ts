@@ -15,6 +15,7 @@ export const exerciseTypeValidator = v.union(
   v.literal("listening"),
   v.literal("reading"),
   v.literal("writing"),
+  // Kept for validating historical sessions; no new content generates it.
   v.literal("speaking"),
 );
 
@@ -33,6 +34,7 @@ export default defineSchema({
       listening: v.number(),
       reading: v.number(),
       writing: v.number(),
+      // Kept for validating historical profiles; hidden from the product UI.
       speaking: v.number(),
     }),
   }).index("by_user", ["userId"]),

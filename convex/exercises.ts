@@ -12,6 +12,7 @@ const skillKeys = [
   "listening",
   "reading",
   "writing",
+  // Historical speaking exercises may still be scored if encountered.
   "speaking",
 ] as const;
 

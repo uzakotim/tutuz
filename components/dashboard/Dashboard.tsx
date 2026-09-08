@@ -1,18 +1,21 @@
 "use client";
 
 import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { generateDailyExercises } from "@/lib/ai";
+
 import {
   EXERCISE_ICONS,
   EXERCISE_LABELS,
   EXERCISE_TYPES,
   LEVELS,
 } from "@/lib/types";
+import { IoIosArrowDown } from "react-icons/io";
+
 
 export function Dashboard() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
@@ -23,9 +26,15 @@ export function Dashboard() {
   const ensureProfile = useMutation(api.users.ensureProfile);
   const updateLevel = useMutation(api.users.updateLevel);
   const createDailySession = useMutation(api.exercises.createDailySession);
+  const changePassword = useAction(api.account.changePassword);
 
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordForm, setPasswordForm] = useState({ current: "", next: "", confirm: "" });
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -64,6 +73,28 @@ export function Dashboard() {
     }
   }
 
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordMessage(null);
+    if (passwordForm.next !== passwordForm.confirm) {
+      setPasswordMessage("New passwords do not match.");
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      await changePassword({
+        currentPassword: passwordForm.current,
+        newPassword: passwordForm.next,
+      });
+      setPasswordForm({ current: "", next: "", confirm: "" });
+      setPasswordMessage("Password updated successfully.");
+    } catch (err) {
+      setPasswordMessage(err instanceof Error ? err.message : "Could not update password.");
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
+
   if (authLoading || profile === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
@@ -76,7 +107,7 @@ export function Dashboard() {
     return null;
   }
 
-  const exercises = todayData?.exercises ?? [];
+  const exercises = (todayData?.exercises ?? []).filter((exercise) => exercise.type !== "speaking");
   const session = todayData?.session;
   const completedCount = exercises.filter((e) => e.status === "completed").length;
   const totalXp = profile.totalXp;
@@ -94,16 +125,18 @@ export function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hidden text-sm text-slate-600 sm:inline">
-              {profile.name ?? profile.email}
-            </span>
-            <button
-              type="button"
-              onClick={() => void signOut().then(() => router.push("/"))}
-              className="text-sm text-slate-500 hover:text-slate-800"
-            >
-              Sign out
-            </button>
+            <div className="relative">
+              <button type="button" onClick={() => setProfileMenuOpen((open) => !open)} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-teal-300">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-100 text-xs font-bold text-teal-800">{(profile.name ?? profile.email ?? "U").slice(0, 1).toUpperCase()}</span>
+                <span className="hidden sm:inline">{profile.name ?? profile.email}</span>
+                <span className="text-slate-400"><IoIosArrowDown /></span>
+              </button>
+              {profileMenuOpen && (
+                <div className="absolute right-0 z-20 mt-2 w-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+                  <button type="button" onClick={() => void signOut().then(() => router.push("/"))} className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-500 hover:bg-slate-50">Sign out</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -118,7 +151,7 @@ export function Dashboard() {
           />
           <StatCard
             label="Today's progress"
-            value={`${completedCount}/6`}
+            value={`${completedCount}/${EXERCISE_TYPES.length}`}
             accent="blue"
           />
           <StatCard
@@ -137,11 +170,10 @@ export function Dashboard() {
               <button
                 key={level}
                 onClick={() => void updateLevel({ level })}
-                className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                  profile.currentLevel === level
-                    ? "bg-teal-600 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                className={`rounded-xl px-4 py-2 text-sm font-medium transition ${profile.currentLevel === level
+                  ? "bg-teal-600 text-white"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
               >
                 {level}
               </button>
@@ -183,7 +215,7 @@ export function Dashboard() {
               </h2>
               <p className="text-sm text-slate-500">
                 {session
-                  ? `${session.completedCount} of ${session.totalCount} completed`
+                  ? `${completedCount} of ${EXERCISE_TYPES.length} completed`
                   : "Generate your daily practice set"}
               </p>
             </div>
@@ -214,11 +246,10 @@ export function Dashboard() {
                   <Link
                     key={type}
                     href={exercise ? `/exercise/${exercise._id}` : "#"}
-                    className={`group rounded-xl border p-4 transition ${
-                      done
-                        ? "border-teal-200 bg-teal-50"
-                        : "border-slate-200 bg-white hover:border-teal-300 hover:shadow-md"
-                    } ${!exercise ? "pointer-events-none opacity-50" : ""}`}
+                    className={`group rounded-xl border p-4 transition ${done
+                      ? "border-teal-200 bg-teal-50"
+                      : "border-slate-200 bg-white hover:border-teal-300 hover:shadow-md"
+                      } ${!exercise ? "pointer-events-none opacity-50" : ""}`}
                   >
                     <div className="mb-2 text-2xl">{EXERCISE_ICONS[type]}</div>
                     <h3 className="font-semibold text-slate-900">
@@ -244,12 +275,30 @@ export function Dashboard() {
           ) : (
             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
               <p className="text-slate-600">
-                Click &quot;Start today&apos;s lesson&quot; to get 6 AI-generated
+                Click &quot;Start today&apos;s lesson&quot; to get 5 AI-generated
                 exercises tailored to your {profile.currentLevel} level.
               </p>
             </div>
           )}
         </section>
+
+        {passwordModalOpen && (
+          <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-950/40 px-4" role="dialog" aria-modal="true" aria-labelledby="password-title">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+              <div className="flex items-start justify-between gap-4">
+                <div><h2 id="password-title" className="text-xl font-semibold text-slate-900">Change password</h2><p className="mt-1 text-sm text-slate-500">Use at least 8 characters.</p></div>
+                <button type="button" onClick={() => setPasswordModalOpen(false)} className="text-xl text-slate-400 hover:text-slate-700" aria-label="Close">×</button>
+              </div>
+              <form onSubmit={(e) => void handlePasswordChange(e)} className="mt-5 space-y-3">
+                <input type="password" required minLength={8} placeholder="Current password" value={passwordForm.current} onChange={(e) => setPasswordForm((p) => ({ ...p, current: e.target.value }))} className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-teal-500" />
+                <input type="password" required minLength={8} placeholder="New password" value={passwordForm.next} onChange={(e) => setPasswordForm((p) => ({ ...p, next: e.target.value }))} className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-teal-500" />
+                <input type="password" required minLength={8} placeholder="Confirm new password" value={passwordForm.confirm} onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))} className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-teal-500" />
+                <div className="flex items-center gap-3 pt-2"><button type="submit" disabled={passwordSaving} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60">{passwordSaving ? "Updating..." : "Update password"}</button><button type="button" onClick={() => setPasswordModalOpen(false)} className="text-sm text-slate-500 hover:text-slate-800">Cancel</button></div>
+                {passwordMessage && <p className="text-sm text-slate-600">{passwordMessage}</p>}
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

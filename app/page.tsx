@@ -32,14 +32,13 @@ export default function HomePage() {
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-slate-600">
           Daily AI-powered exercises in vocabulary, grammar, listening, reading,
-          writing, and speaking — from A1 to B2.
+          and writing — from A1 to B2.
         </p>
 
         <div className="mt-10 grid w-full max-w-2xl gap-4 sm:grid-cols-3">
           {[
             { icon: "📚", label: "Vocabulary" },
             { icon: "🎧", label: "Listening" },
-            { icon: "🎤", label: "Speaking" },
             { icon: "✏️", label: "Grammar" },
             { icon: "📖", label: "Reading" },
             { icon: "✍️", label: "Writing" },

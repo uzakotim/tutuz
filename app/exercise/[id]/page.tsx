@@ -43,5 +43,23 @@ export default function ExercisePage({ params }: PageProps<"/exercise/[id]">) {
     );
   }
 
-  return <ExerciseView exercise={exercise} />;
+  if (exercise.type === "speaking") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
+        <p className="text-slate-600">This exercise is no longer available.</p>
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="text-teal-600 hover:underline"
+        >
+          Back to dashboard
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <ExerciseView
+      exercise={exercise as unknown as Parameters<typeof ExerciseView>[0]["exercise"]}
+    />
+  );
 }

@@ -5,8 +5,7 @@ export type ExerciseType =
   | "grammar"
   | "listening"
   | "reading"
-  | "writing"
-  | "speaking";
+  | "writing";
 
 export const EXERCISE_TYPES: ExerciseType[] = [
   "vocabulary",
@@ -14,7 +13,6 @@ export const EXERCISE_TYPES: ExerciseType[] = [
   "listening",
   "reading",
   "writing",
-  "speaking",
 ];
 
 export const LEVELS: Level[] = ["A1", "A2", "B1", "B2"];
@@ -25,7 +23,6 @@ export const EXERCISE_LABELS: Record<ExerciseType, string> = {
   listening: "Listening",
   reading: "Reading",
   writing: "Writing",
-  speaking: "Speaking",
 };
 
 export const EXERCISE_ICONS: Record<ExerciseType, string> = {
@@ -34,7 +31,6 @@ export const EXERCISE_ICONS: Record<ExerciseType, string> = {
   listening: "🎧",
   reading: "📖",
   writing: "✍️",
-  speaking: "🎤",
 };
 
 export interface VocabularyContent {
@@ -86,20 +82,12 @@ export interface WritingContent {
   keywords: string[];
 }
 
-export interface SpeakingContent {
-  englishPrompt: string;
-  targetSentence: string;
-  keywords: string[];
-  transliteration?: string;
-}
-
 export type ExerciseContent =
   | VocabularyContent
   | GrammarContent
   | ListeningContent
   | ReadingContent
-  | WritingContent
-  | SpeakingContent;
+  | WritingContent;
 
 export interface GeneratedExercise {
   type: ExerciseType;

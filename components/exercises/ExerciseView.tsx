@@ -9,7 +9,6 @@ import type { Id } from "@/convex/_generated/dataModel";
 import {
   checkExactAnswer,
   checkPartialMatch,
-  evaluateSpeakingAnswer,
   evaluateWritingAnswer,
 } from "@/lib/ai";
 import {
@@ -19,7 +18,6 @@ import {
   type GrammarContent,
   type ListeningContent,
   type ReadingContent,
-  type SpeakingContent,
   type VocabularyContent,
   type WritingContent,
 } from "@/lib/types";
@@ -127,14 +125,6 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
         {exercise.type === "writing" && (
           <WritingExercise
             content={content as WritingContent}
-            onSubmit={handleSubmit}
-            submitting={submitting}
-            completed={exercise.status === "completed"}
-          />
-        )}
-        {exercise.type === "speaking" && (
-          <SpeakingExercise
-            content={content as SpeakingContent}
             onSubmit={handleSubmit}
             submitting={submitting}
             completed={exercise.status === "completed"}
@@ -580,144 +570,6 @@ function WritingExercise({
           className="rounded-xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
         >
           {evaluating || submitting ? "Evaluating..." : "Submit writing"}
-        </button>
-      )}
-    </form>
-  );
-}
-
-function SpeakingExercise({
-  content,
-  onSubmit,
-  submitting,
-  completed,
-}: {
-  content: SpeakingContent;
-  onSubmit: (answer: string, score: number, feedback: string) => Promise<void>;
-  submitting: boolean;
-  completed: boolean;
-}) {
-  const [transcript, setTranscript] = useState("");
-  const [listening, setListening] = useState(false);
-  const [evaluating, setEvaluating] = useState(false);
-  const [supported, setSupported] = useState(true);
-
-  function startListening() {
-    type SpeechRecognitionCtor = new () => {
-      lang: string;
-      continuous: boolean;
-      interimResults: boolean;
-      onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
-      onend: (() => void) | null;
-      onerror: (() => void) | null;
-      start: () => void;
-    };
-
-    const win = window as Window & {
-      SpeechRecognition?: SpeechRecognitionCtor;
-      webkitSpeechRecognition?: SpeechRecognitionCtor;
-    };
-
-    const SpeechRecognition = win.SpeechRecognition ?? win.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setSupported(false);
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-
-    recognition.lang = "tr-TR";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    setListening(true);
-
-    recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      setTranscript(text);
-    };
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
-    recognition.start();
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setEvaluating(true);
-    try {
-      const result = await evaluateSpeakingAnswer(
-        content.targetSentence,
-        transcript,
-        content.keywords,
-      );
-      await onSubmit(transcript, result.score, result.feedback);
-    } catch {
-      await onSubmit(
-        transcript,
-        checkPartialMatch(transcript, content.targetSentence) ? 60 : 20,
-        "Could not evaluate automatically. Compare with the target sentence.",
-      );
-    } finally {
-      setEvaluating(false);
-    }
-  }
-
-  return (
-    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <p className="font-medium text-slate-900">{content.englishPrompt}</p>
-        <div className="mt-4 rounded-xl bg-teal-50 p-4">
-          <p className="text-sm text-teal-800">Say this in Uzbek:</p>
-          <p className="mt-1 font-semibold text-teal-900">
-            {content.targetSentence}
-          </p>
-          {content.transliteration && (
-            <p className="mt-1 text-sm text-teal-600">
-              {content.transliteration}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {!supported && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Speech recognition is not supported in this browser. Type your sentence
-          below instead.
-        </p>
-      )}
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        {supported && (
-          <button
-            type="button"
-            onClick={startListening}
-            disabled={listening || completed}
-            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-red-500 text-2xl text-white transition hover:bg-red-600 disabled:opacity-60"
-          >
-            {listening ? "⏺" : "🎤"}
-          </button>
-        )}
-        <textarea
-          value={transcript}
-          onChange={(e) => setTranscript(e.target.value)}
-          disabled={completed}
-          rows={3}
-          className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-teal-500"
-          placeholder={
-            supported
-              ? "Your spoken answer will appear here..."
-              : "Type the Uzbek sentence you would say..."
-          }
-        />
-      </div>
-
-      {!completed && (
-        <button
-          type="submit"
-          disabled={submitting || evaluating || !transcript.trim()}
-          className="rounded-xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
-        >
-          {evaluating || submitting ? "Evaluating..." : "Submit speaking"}
         </button>
       )}
     </form>

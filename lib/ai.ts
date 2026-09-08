@@ -64,21 +64,10 @@ Return JSON with this exact structure:
         "keywords": ["string"]
       }
     },
-    {
-      "type": "speaking",
-      "title": "string",
-      "instructions": "string",
-      "content": {
-        "englishPrompt": "string",
-        "targetSentence": "string (Uzbek sentence to speak)",
-        "keywords": ["string"],
-        "transliteration": "string"
-      }
-    }
   ]
 }
 
-Include exactly 6 exercises, one of each type, in this order: vocabulary, grammar, listening, reading, writing, speaking.
+Include exactly 5 exercises, one of each type, in this order: vocabulary, grammar, listening, reading, writing.
 For vocabulary include 4 words and 3 multiple-choice questions.
 For grammar include 2 fill-in-the-blank questions.
 For listening and reading include 2 comprehension questions each.
@@ -140,7 +129,7 @@ export async function generateDailyExercises(
   const jsonStr = extractJson(text);
   const parsed = JSON.parse(jsonStr) as DailyExerciseSet;
 
-  if (!parsed.exercises || parsed.exercises.length !== 6) {
+  if (!parsed.exercises || parsed.exercises.length !== 5) {
     throw new Error("Invalid exercise set from AI");
   }
 
@@ -171,36 +160,6 @@ Score based on grammar, vocabulary use, and whether the meaning matches the prom
 
   if (!response.ok) {
     throw new Error("Failed to evaluate writing");
-  }
-
-  const data: unknown = await response.json();
-  const text = getResponseText(data);
-  const jsonStr = extractJson(text);
-  return JSON.parse(jsonStr) as { score: number; feedback: string };
-}
-
-export async function evaluateSpeakingAnswer(
-  targetSentence: string,
-  userTranscript: string,
-  keywords: string[],
-): Promise<{ score: number; feedback: string }> {
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_prompt:
-        "You are an Uzbek language teacher evaluating spoken Uzbek from speech-to-text. Respond with JSON only: { \"score\": number 0-100, \"feedback\": \"string\" }",
-      prompt: `Evaluate this spoken Uzbek exercise.
-Target sentence: ${targetSentence}
-Keywords to include: ${keywords.join(", ")}
-Student said (via speech recognition): ${userTranscript}
-
-Account for speech recognition errors. Score based on whether key words and meaning match.`,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to evaluate speaking");
   }
 
   const data: unknown = await response.json();
