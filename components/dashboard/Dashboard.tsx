@@ -3,16 +3,18 @@
 import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { generateDailyExercises } from "@/lib/ai";
+import type { Id } from "@/convex/_generated/dataModel";
 
 import {
   EXERCISE_ICONS,
   EXERCISE_LABELS,
   EXERCISE_TYPES,
   LEVELS,
+  type Topic,
 } from "@/lib/types";
 import { IoIosArrowDown } from "react-icons/io";
 
@@ -21,12 +23,24 @@ export function Dashboard() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const profile = useQuery(api.users.currentProfile);
   const todayData = useQuery(api.exercises.getTodaySession);
   const ensureProfile = useMutation(api.users.ensureProfile);
   const updateLevel = useMutation(api.users.updateLevel);
   const createDailySession = useMutation(api.exercises.createDailySession);
+  const ensureCurriculumSeeded = useMutation(api.topics.ensureCurriculumSeeded);
   const changePassword = useAction(api.account.changePassword);
+  const requestedTopicId = searchParams.get("topicId") as Id<"topics"> | null;
+  const requestedTopic = useQuery(
+    api.topics.getTopic,
+    requestedTopicId && isAuthenticated ? { topicId: requestedTopicId } : "skip",
+  );
+  const levelProgress = useQuery(api.topics.getUserLevelProgress, isAuthenticated ? {} : "skip");
+  const curriculumTopics = useQuery(
+    api.topics.getTopicsByLevel,
+    profile ? { level: profile.currentLevel } : "skip",
+  );
 
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +49,10 @@ export function Dashboard() {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [curriculumReady, setCurriculumReady] = useState(false);
+  const [topicCategory, setTopicCategory] = useState("All");
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  const generatedFromQuery = useRef<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -48,15 +66,39 @@ export function Dashboard() {
     }
   }, [isAuthenticated, profile, ensureProfile]);
 
-  async function handleGenerateExercises() {
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+
+    async function seedCurriculum() {
+      try {
+        for (let attempt = 0; attempt < 20; attempt += 1) {
+          const result = await ensureCurriculumSeeded({});
+          if (!result.hasMore) break;
+        }
+        if (!cancelled) setCurriculumReady(true);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not load the curriculum");
+        }
+      }
+    }
+
+    void seedCurriculum();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, ensureCurriculumSeeded]);
+
+  const handleGenerateExercises = useCallback(async (topic?: Topic) => {
     if (!profile) return;
     setGenerating(true);
     setError(null);
 
     try {
-      const exerciseSet = await generateDailyExercises(profile.currentLevel);
-      await createDailySession({
-        level: profile.currentLevel,
+      const lessonLevel = topic?.level ?? profile.currentLevel;
+      const exerciseSet = await generateDailyExercises(lessonLevel, topic);
+      const session = await createDailySession({
+        level: lessonLevel,
+        topicId: topic?._id as Id<"topics"> | undefined,
         exercises: exerciseSet.exercises.map((e) => ({
           type: e.type,
           title: e.title,
@@ -64,6 +106,8 @@ export function Dashboard() {
           content: e.content,
         })),
       });
+      const firstExerciseId = session.exerciseIds[0];
+      if (firstExerciseId) router.push(`/exercise/${firstExerciseId}`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to generate exercises",
@@ -71,7 +115,20 @@ export function Dashboard() {
     } finally {
       setGenerating(false);
     }
-  }
+  }, [profile, router, createDailySession]);
+
+  useEffect(() => {
+    if (
+      !requestedTopic ||
+      !profile ||
+      !curriculumReady ||
+      generatedFromQuery.current === requestedTopic._id
+    ) return;
+    generatedFromQuery.current = requestedTopic._id;
+    void handleGenerateExercises(requestedTopic as Topic).finally(() => {
+      router.replace("/dashboard");
+    });
+  }, [requestedTopic, profile, curriculumReady, router, handleGenerateExercises]);
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -112,6 +169,10 @@ export function Dashboard() {
   const completedCount = exercises.filter((e) => e.status === "completed").length;
   const totalXp = profile.totalXp;
   const maxSkillXp = Math.max(...Object.values(profile.skillXp), 1);
+  const currentLevelProgress = levelProgress?.levels.find((item) => item.level === profile.currentLevel);
+  const nextTopic = currentLevelProgress?.nextTopic ?? null;
+  const categories = ["All", ...Array.from(new Set((curriculumTopics ?? []).map((item) => item.topic.category)))];
+  const filteredTopics = (curriculumTopics ?? []).filter((item) => topicCategory === "All" || item.topic.category === topicCategory);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-amber-50">
@@ -178,6 +239,74 @@ export function Dashboard() {
                 {level}
               </button>
             ))}
+          </div>
+        </section>
+
+        <section className="mb-8 rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-teal-700">Level progress</p>
+              <h2 className="text-xl font-bold text-slate-900">
+                Level {profile.currentLevel}: {currentLevelProgress?.completedTopics ?? 0} of {currentLevelProgress?.totalTopics ?? 0} topics
+              </h2>
+            </div>
+            <p className="text-2xl font-bold text-teal-700">{currentLevelProgress?.percentage ?? 0}%</p>
+          </div>
+          <div className="mt-4 h-3 overflow-hidden rounded-full bg-teal-50">
+            <div className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-500" style={{ width: `${currentLevelProgress?.percentage ?? 0}%` }} />
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {levelProgress?.levels.map((item) => (
+              <div key={item.level} className={`rounded-xl border p-3 ${item.level === profile.currentLevel ? "border-teal-200 bg-teal-50" : "border-slate-100 bg-slate-50"}`}>
+                <div className="flex justify-between text-sm font-semibold"><span>{item.level}</span><span>{item.percentage}%</span></div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-teal-500" style={{ width: `${item.percentage}%` }} /></div>
+                <p className="mt-1 text-xs text-slate-500">{item.completedTopics}/{item.totalTopics} topics</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mb-8 overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-6 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Up next</p>
+          {nextTopic ? (
+            <div className="mt-2 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-sm text-slate-500">Topic {nextTopic.order} · {nextTopic.category}</p>
+                <h2 className="mt-1 text-2xl font-bold text-slate-900">{nextTopic.title}</h2>
+                <p className="mt-1 text-lg text-teal-800">{nextTopic.titleUzbek}</p>
+                <p className="mt-3 text-slate-600">{nextTopic.description}</p>
+                <p className="mt-3 text-sm text-slate-500">Vocabulary: {nextTopic.keyVocabulary.slice(0, 4).map((word) => word.uzbek).join(", ")}</p>
+              </div>
+              <button onClick={() => void handleGenerateExercises(nextTopic as Topic)} disabled={generating || !curriculumReady} className="shrink-0 rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">
+                {generating ? "Generating..." : "Generate lesson for this topic"}
+              </button>
+            </div>
+          ) : (
+            <p className="mt-2 text-slate-600">{curriculumReady ? "You have completed this level — choose the next CEFR level to continue." : "Preparing your curriculum..."}</p>
+          )}
+        </section>
+
+        <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div><h2 className="text-lg font-semibold text-slate-900">Curriculum explorer</h2><p className="text-sm text-slate-500">Choose a topic for a focused lesson.</p></div>
+            <select value={topicCategory} onChange={(event) => setTopicCategory(event.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-teal-500">
+              {categories.map((category) => <option key={category}>{category}</option>)}
+            </select>
+          </div>
+          <div className="mt-4 max-h-[32rem] space-y-2 overflow-y-auto pr-1">
+            {filteredTopics.map(({ topic, status, lastScore }) => {
+              const expanded = selectedTopicId === topic._id;
+              const statusStyle = status === "completed" ? "bg-emerald-100 text-emerald-800" : status === "in_progress" ? "bg-amber-100 text-amber-800" : topic._id === nextTopic?._id ? "bg-teal-100 text-teal-800" : "bg-slate-100 text-slate-600";
+              const label = status === "completed" ? "Completed" : status === "in_progress" ? "In progress" : topic._id === nextTopic?._id ? "Up next" : "Available";
+              return <div key={topic._id} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <button type="button" onClick={() => setSelectedTopicId(expanded ? null : topic._id ?? null)} className="flex w-full items-center gap-3 text-left">
+                  <span className="w-7 text-center text-sm font-bold text-slate-400">{topic.order}</span>
+                  <span className="min-w-0 flex-1"><span className="block truncate font-medium text-slate-900">{topic.title}</span><span className="block truncate text-sm text-slate-500">{topic.titleUzbek} · {topic.category}</span></span>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyle}`}>{label}{lastScore !== null ? ` · ${lastScore}%` : ""}</span>
+                </button>
+                {expanded && <div className="ml-10 mt-3 border-t border-slate-200 pt-3"><p className="text-sm text-slate-600">{topic.description}</p><p className="mt-2 text-sm text-slate-500"><span className="font-medium">Grammar:</span> {topic.grammarFocus}</p><p className="mt-1 text-sm text-slate-500"><span className="font-medium">Vocabulary:</span> {topic.keyVocabulary.map((word) => `${word.uzbek} (${word.english})`).join(", ")}</p><button onClick={() => void handleGenerateExercises(topic as Topic)} disabled={generating || !curriculumReady || status === "completed"} className="mt-3 rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">{status === "completed" ? "Topic completed" : "Generate focused lesson"}</button></div>}
+              </div>;
+            })}
           </div>
         </section>
 

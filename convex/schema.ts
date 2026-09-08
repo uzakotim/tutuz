@@ -19,6 +19,12 @@ export const exerciseTypeValidator = v.union(
   v.literal("speaking"),
 );
 
+export const topicStatusValidator = v.union(
+  v.literal("not_started"),
+  v.literal("in_progress"),
+  v.literal("completed"),
+);
+
 export default defineSchema({
   ...authTables,
   userProfiles: defineTable({
@@ -46,7 +52,10 @@ export default defineSchema({
     completedCount: v.number(),
     totalCount: v.number(),
     status: v.union(v.literal("active"), v.literal("completed")),
-  }).index("by_user_and_date", ["userId", "date"]),
+    topicId: v.optional(v.id("topics")),
+  })
+    .index("by_user_and_date", ["userId", "date"])
+    .index("by_user_and_topic", ["userId", "topicId"]),
 
   exercises: defineTable({
     userId: v.id("users"),
@@ -61,7 +70,33 @@ export default defineSchema({
     userAnswer: v.optional(v.string()),
     feedback: v.optional(v.string()),
     completedAt: v.optional(v.number()),
+    topicId: v.optional(v.id("topics")),
   })
     .index("by_session", ["sessionId"])
+    .index("by_user", ["userId"]),
+
+  topics: defineTable({
+    level: levelValidator,
+    order: v.number(),
+    title: v.string(),
+    titleUzbek: v.string(),
+    category: v.string(),
+    description: v.string(),
+    keyVocabulary: v.array(v.object({ uzbek: v.string(), english: v.string() })),
+    grammarFocus: v.string(),
+  })
+    .index("by_level_and_order", ["level", "order"])
+    .index("by_level", ["level"]),
+
+  userTopicProgress: defineTable({
+    userId: v.id("users"),
+    topicId: v.id("topics"),
+    level: levelValidator,
+    status: topicStatusValidator,
+    completedAt: v.optional(v.number()),
+    lastScore: v.optional(v.number()),
+  })
+    .index("by_user_and_topic", ["userId", "topicId"])
+    .index("by_user_and_level", ["userId", "level"])
     .index("by_user", ["userId"]),
 });

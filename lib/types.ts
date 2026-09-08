@@ -17,6 +17,34 @@ export const EXERCISE_TYPES: ExerciseType[] = [
 
 export const LEVELS: Level[] = ["A1", "A2", "B1", "B2"];
 
+export interface Topic {
+  _id?: string;
+  level: Level;
+  order: number;
+  title: string;
+  titleUzbek: string;
+  category: string;
+  description: string;
+  keyVocabulary: Array<{ uzbek: string; english: string }>;
+  grammarFocus: string;
+}
+
+export type TopicStatus = "not_started" | "in_progress" | "completed";
+
+export interface TopicProgress {
+  topic: Topic;
+  status: TopicStatus;
+  lastScore: number | null;
+}
+
+export interface LevelProgressSummary {
+  level: Level;
+  totalTopics: number;
+  completedTopics: number;
+  percentage: number;
+  nextTopic: Topic | null;
+}
+
 export const EXERCISE_LABELS: Record<ExerciseType, string> = {
   vocabulary: "Vocabulary",
   grammar: "Grammar",

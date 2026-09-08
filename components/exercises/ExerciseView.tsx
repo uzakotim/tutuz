@@ -46,6 +46,12 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
       ? { score: exercise.score, feedback: exercise.feedback ?? "" }
       : null,
   );
+  const [topicCompletion, setTopicCompletion] = useState<{
+    completedTopics: number;
+    totalTopics: number;
+    percentage: number;
+    nextTopic: { _id: Id<"topics">; title: string; titleUzbek: string; order: number } | null;
+  } | null>(null);
 
   async function handleSubmit(
     userAnswer: string,
@@ -54,13 +60,16 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
   ) {
     setSubmitting(true);
     try {
-      await submitExercise({
+      const submission = await submitExercise({
         exerciseId: exercise._id,
         userAnswer,
         score,
         feedback,
       });
       setResult({ score, feedback });
+      if (submission.topicCompletion) {
+        setTopicCompletion(submission.topicCompletion);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -153,6 +162,26 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
             >
               Back to dashboard
             </button>
+          </div>
+        )}
+
+        {topicCompletion && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/40 px-4" role="dialog" aria-modal="true" aria-labelledby="topic-complete-title">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl">
+              <div className="text-5xl">🎉</div>
+              <h2 id="topic-complete-title" className="mt-3 text-2xl font-bold text-slate-900">Topic completed!</h2>
+              <p className="mt-2 text-slate-600">You&apos;ve completed {topicCompletion.completedTopics} of {topicCompletion.totalTopics} topics in this level ({topicCompletion.percentage}%).</p>
+              {topicCompletion.nextTopic ? (
+                <div className="mt-4 rounded-xl bg-teal-50 p-4 text-left">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Next topic · {topicCompletion.nextTopic.order}</p>
+                  <p className="mt-1 font-semibold text-slate-900">{topicCompletion.nextTopic.title}</p>
+                  <p className="text-sm text-teal-800">{topicCompletion.nextTopic.titleUzbek}</p>
+                </div>
+              ) : <p className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">You&apos;ve completed every topic in this level.</p>}
+              <button onClick={() => router.push(topicCompletion.nextTopic ? `/dashboard?topicId=${topicCompletion.nextTopic._id}` : "/dashboard")} className="mt-5 w-full rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700">
+                {topicCompletion.nextTopic ? "Continue to next topic lesson →" : "Back to dashboard"}
+              </button>
+            </div>
           </div>
         )}
       </main>

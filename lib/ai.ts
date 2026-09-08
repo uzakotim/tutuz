@@ -1,4 +1,4 @@
-import type { DailyExerciseSet, Level } from "./types";
+import type { DailyExerciseSet, Level, Topic } from "./types";
 
 const SYSTEM_PROMPT = `You are an expert Uzbek language teacher creating daily exercises for English-speaking learners.
 You teach Uzbek using the Latin alphabet (not Cyrillic).
@@ -7,8 +7,16 @@ Exercises must be appropriate for the given CEFR level (A1=beginner, A2=elementa
 Include transliteration for Uzbek text when helpful for beginners.
 Make content culturally relevant and practical for everyday use in Uzbekistan.`;
 
-function buildPrompt(level: Level) {
+function buildPrompt(level: Level, topic?: Topic) {
+  const topicInstructions = topic
+    ? `\nThis is a targeted lesson for topic ${topic.order}: ${topic.title} (${topic.titleUzbek}).
+Theme: ${topic.description}
+Target vocabulary: ${topic.keyVocabulary.map((word) => `${word.uzbek} (${word.english})`).join(", ")}
+Grammar focus: ${topic.grammarFocus}
+Every exercise must directly practice this topic. Do not introduce an unrelated grammar point.`
+    : "";
   return `Create a daily Uzbek language exercise set for level ${level}.
+${topicInstructions}
 
 Return JSON with this exact structure:
 {
@@ -110,12 +118,13 @@ function getResponseText(data: unknown): string {
 
 export async function generateDailyExercises(
   level: Level,
+  topic?: Topic,
 ): Promise<DailyExerciseSet> {
   const response = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildPrompt(level),
+      prompt: buildPrompt(level, topic),
       system_prompt: SYSTEM_PROMPT,
     }),
   });
