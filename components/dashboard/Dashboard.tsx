@@ -89,11 +89,7 @@ export function Dashboard() {
   }, [isAuthenticated, ensureCurriculumSeeded]);
 
   const handleGenerateExercises = useCallback(async (topic?: Topic) => {
-    if (!profile) return;
-    setGenerating(true);
-    setError(null);
-
-    try {
+    if (!profile) return; setGenerating(true); setError(null); try {
       const lessonLevel = topic?.level ?? profile.currentLevel;
       const exerciseSet = await generateDailyExercises(lessonLevel, topic);
       const session = await createDailySession({
@@ -107,14 +103,15 @@ export function Dashboard() {
         })),
       });
       const firstExerciseId = session.exerciseIds[0];
-      if (firstExerciseId) router.push(`/exercise/${firstExerciseId}`);
+      if (firstExerciseId) {
+        // Give Convex's reactive query a moment to receive the updated 
+        // daily session before leaving the dashboard. 
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        router.push(`/exercise/${firstExerciseId}`);
+      }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to generate exercises",
-      );
-    } finally {
-      setGenerating(false);
-    }
+      setError(err instanceof Error ? err.message : "Failed to generate exercises",);
+    } finally { setGenerating(false); }
   }, [profile, router, createDailySession]);
 
   useEffect(() => {

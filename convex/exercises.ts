@@ -113,60 +113,92 @@ export const createDailySession = mutation({
       }),
     ),
   },
-  returns: v.object({ sessionId: v.id("dailySessions"), exerciseIds: v.array(v.id("exercises")) }),
+  returns: v.object({
+    sessionId: v.id("dailySessions"),
+    exerciseIds: v.array(v.id("exercises")),
+  }),
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const date = todayDateString();
 
-    let existing;
+    // Validate the requested topic.
     if (args.topicId) {
-      const topicId = args.topicId;
-      const topic = await ctx.db.get("topics", topicId);
+      const topic = await ctx.db.get("topics", args.topicId);
+
       if (!topic || topic.level !== args.level) {
         throw new Error("Topic does not match this lesson level");
       }
-      existing = await ctx.db
-        .query("dailySessions")
-        .withIndex("by_user_and_topic", (q) => q.eq("userId", userId).eq("topicId", topicId))
-        .unique();
 
+      // Mark the topic as in progress.
       const progress = await ctx.db
         .query("userTopicProgress")
-        .withIndex("by_user_and_topic", (q) => q.eq("userId", userId).eq("topicId", topicId))
+        .withIndex("by_user_and_topic", (q) =>
+          q.eq("userId", userId).eq("topicId", args.topicId!)
+        )
         .unique();
+
       if (!progress) {
-        await ctx.db.insert("userTopicProgress", { userId, topicId, level: topic.level, status: "in_progress" });
+        await ctx.db.insert("userTopicProgress", {
+          userId,
+          topicId: args.topicId,
+          level: topic.level,
+          status: "in_progress",
+        });
       } else if (progress.status === "not_started") {
-        await ctx.db.patch("userTopicProgress", progress._id, { status: "in_progress" });
+        await ctx.db.patch("userTopicProgress", progress._id, {
+          status: "in_progress",
+        });
       }
-    } else {
-      const sessions = await ctx.db
-        .query("dailySessions")
-        .withIndex("by_user_and_date", (q) => q.eq("userId", userId).eq("date", date))
-        .order("desc")
-        .take(10);
-      existing = sessions[0];
     }
 
+    // Find today's session only.
+    const todaysSessions = await ctx.db
+      .query("dailySessions")
+      .withIndex("by_user_and_date", (q) =>
+        q.eq("userId", userId).eq("date", date)
+      )
+      .order("desc")
+      .take(10);
+
+    const existing = todaysSessions[0];
+
+    let sessionId: Id<"dailySessions">;
+
     if (existing) {
-      const exercises = await ctx.db
+      // Remove today's old exercises so the newly generated lesson
+      // completely replaces the previous one.
+      const oldExercises = await ctx.db
         .query("exercises")
         .withIndex("by_session", (q) => q.eq("sessionId", existing._id))
         .collect();
-      return { sessionId: existing._id, exerciseIds: exercises.map((e) => e._id) };
+
+      for (const exercise of oldExercises) {
+        await ctx.db.delete("exercises", exercise._id);
+      }
+
+      await ctx.db.patch("dailySessions", existing._id, {
+        level: args.level,
+        completedCount: 0,
+        totalCount: args.exercises.length,
+        status: "active",
+        topicId: args.topicId,
+      });
+
+      sessionId = existing._id;
+    } else {
+      sessionId = await ctx.db.insert("dailySessions", {
+        userId,
+        date,
+        level: args.level,
+        completedCount: 0,
+        totalCount: args.exercises.length,
+        status: "active",
+        topicId: args.topicId,
+      });
     }
 
-    const sessionId = await ctx.db.insert("dailySessions", {
-      userId,
-      date,
-      level: args.level,
-      completedCount: 0,
-      totalCount: args.exercises.length,
-      status: "active",
-      topicId: args.topicId,
-    });
+    const exerciseIds: Id<"exercises">[] = [];
 
-    const exerciseIds = [];
     for (const exercise of args.exercises) {
       const id = await ctx.db.insert("exercises", {
         userId,
@@ -179,10 +211,14 @@ export const createDailySession = mutation({
         status: "pending",
         topicId: args.topicId,
       });
+
       exerciseIds.push(id);
     }
 
-    return { sessionId, exerciseIds };
+    return {
+      sessionId,
+      exerciseIds,
+    };
   },
 });
 
