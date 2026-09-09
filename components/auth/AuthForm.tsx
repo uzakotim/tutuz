@@ -87,11 +87,8 @@ export function AuthForm() {
       <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-2xl shadow-indigo-900/10 backdrop-blur">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl shadow-lg shadow-indigo-500/30"
-            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
-          >
-            🧠
+          <div className="flex items-center justify-center gap-2">
+            <img src="/icon.png" alt="Icon" className="h-12 w-12 rounded-xl" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Tutuz</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -105,22 +102,20 @@ export function AuthForm() {
             <button
               type="button"
               onClick={() => setMode("signIn")}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all duration-200 ${
-                mode === "signIn"
-                  ? "bg-white text-indigo-700 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all duration-200 ${mode === "signIn"
+                ? "bg-white text-indigo-700 shadow-sm"
+                : "text-slate-500 hover:text-slate-800"
+                }`}
             >
               Sign in
             </button>
             <button
               type="button"
               onClick={() => setMode("signUp")}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all duration-200 ${
-                mode === "signUp"
-                  ? "bg-white text-indigo-700 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all duration-200 ${mode === "signUp"
+                ? "bg-white text-indigo-700 shadow-sm"
+                : "text-slate-500 hover:text-slate-800"
+                }`}
             >
               Sign up
             </button>

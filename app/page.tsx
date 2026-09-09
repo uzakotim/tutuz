@@ -47,10 +47,7 @@ export default function HomePage() {
 
       <main className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-20 text-center">
         {/* Logo / icon area */}
-        <div className="animate-float mb-6 flex h-24 w-24 items-center justify-center rounded-3xl shadow-2xl" style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}>
-          {/* Brain + Book emoji fallback */}
-          <span className="text-5xl">🧠</span>
-        </div>
+        <img src="/icon.png" alt="Icon" className="h-12 w-12 rounded-xl mb-3" />
 
         <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/70 px-4 py-1.5 text-sm font-medium text-indigo-700 backdrop-blur">
           <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
