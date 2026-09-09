@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
         description: "Daily Uzbek practice",
         start_url: "/",
         display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#0d9488",
+        background_color: "#F0F4FF",
+        theme_color: "#4F46E5",
         icons: [
             {
                 src: "/icon.png",

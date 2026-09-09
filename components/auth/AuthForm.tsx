@@ -79,12 +79,19 @@ export function AuthForm() {
     }
   }
 
+  const inputCls =
+    "w-full rounded-xl border border-indigo-100 bg-white/70 px-4 py-2.5 text-slate-900 outline-none transition duration-200 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white";
+
   return (
     <div className="w-full max-w-md">
-      <div className="rounded-2xl border border-teal-100 bg-white p-8 shadow-lg shadow-teal-900/5">
+      <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-2xl shadow-indigo-900/10 backdrop-blur">
+        {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-600 text-2xl text-white">
-            🇺🇿
+          <div
+            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl shadow-lg shadow-indigo-500/30"
+            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
+          >
+            🧠
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Tutuz</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -92,30 +99,33 @@ export function AuthForm() {
           </p>
         </div>
 
-        {mode !== "forgot" && mode !== "reset" && <div className="mb-6 flex rounded-xl bg-slate-100 p-1">
-          <button
-            type="button"
-            onClick={() => setMode("signIn")}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-              mode === "signIn"
-                ? "bg-white text-teal-700 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("signUp")}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-              mode === "signUp"
-                ? "bg-white text-teal-700 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Sign up
-          </button>
-        </div>}
+        {/* Tab switcher */}
+        {mode !== "forgot" && mode !== "reset" && (
+          <div className="mb-6 flex rounded-xl bg-indigo-50 p-1">
+            <button
+              type="button"
+              onClick={() => setMode("signIn")}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all duration-200 ${
+                mode === "signIn"
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              Sign in
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("signUp")}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all duration-200 ${
+                mode === "signUp"
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              Sign up
+            </button>
+          </div>
+        )}
 
         {(mode === "forgot" || mode === "reset") && (
           <div className="mb-6">
@@ -124,7 +134,7 @@ export function AuthForm() {
             </h2>
             <p className="mt-1 text-sm text-slate-500">
               {mode === "forgot"
-                ? "Enter your email and we’ll send you a secure reset link."
+                ? "Enter your email and we'll send you a secure reset link."
                 : "Your new password must be at least 8 characters."}
             </p>
           </div>
@@ -140,7 +150,7 @@ export function AuthForm() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                className={inputCls}
                 placeholder="Your name"
               />
             </div>
@@ -155,40 +165,46 @@ export function AuthForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+              className={inputCls}
               placeholder="you@example.com"
             />
           </div>
 
-          {mode !== "forgot" && <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
-              placeholder="At least 8 characters"
-            />
-          </div>}
+          {mode !== "forgot" && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputCls}
+                placeholder="At least 8 characters"
+              />
+            </div>
+          )}
 
           {mode === "signIn" && (
-            <button type="button" onClick={() => setMode("forgot")} className="text-sm text-teal-700 hover:underline">
+            <button
+              type="button"
+              onClick={() => setMode("forgot")}
+              className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+            >
               Forgot your password?
             </button>
           )}
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+            <p className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">
               {error}
             </p>
           )}
 
           {message && (
-            <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-800">
+            <p className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm text-indigo-800">
               {message}
             </p>
           )}
@@ -196,14 +212,33 @@ export function AuthForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-teal-600 py-3 font-semibold text-white transition hover:bg-teal-700 disabled:opacity-60"
+            className="group relative w-full overflow-hidden rounded-xl py-3 font-semibold text-white shadow-lg shadow-indigo-500/30 transition duration-300 hover:shadow-xl hover:shadow-indigo-500/40 hover:-translate-y-0.5 disabled:opacity-60 disabled:transform-none"
+            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
           >
-            {loading ? "Please wait..." : mode === "signUp" ? "Create account" : mode === "forgot" ? "Email reset link" : mode === "reset" ? "Set new password" : "Sign in"}
+            <span className="relative z-10">
+              {loading
+                ? "Please wait..."
+                : mode === "signUp"
+                  ? "Create account"
+                  : mode === "forgot"
+                    ? "Email reset link"
+                    : mode === "reset"
+                      ? "Set new password"
+                      : "Sign in"}
+            </span>
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full"
+            />
           </button>
         </form>
 
         {(mode === "forgot" || mode === "reset") && (
-          <button type="button" onClick={() => setMode("signIn")} className="mt-5 w-full text-sm text-slate-500 hover:text-slate-800">
+          <button
+            type="button"
+            onClick={() => setMode("signIn")}
+            className="mt-5 w-full text-sm text-slate-500 hover:text-slate-800"
+          >
             ← Back to sign in
           </button>
         )}

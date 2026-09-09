@@ -78,17 +78,18 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
   const content = exercise.content;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-amber-50">
-      <header className="border-b border-teal-100 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-4">
+    <div className="min-h-screen">
+      {/* Header */}
+      <header className="sticky top-0 z-10 border-b border-white/50 bg-white/70 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3.5">
           <Link
             href="/dashboard"
-            className="text-sm text-teal-600 hover:text-teal-800"
+            className="flex items-center gap-1.5 rounded-xl border border-indigo-100 bg-white/80 px-3 py-1.5 text-sm font-medium text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-800"
           >
             ← Back
           </Link>
           <div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs font-medium text-indigo-500">
               {EXERCISE_ICONS[exercise.type]} {EXERCISE_LABELS[exercise.type]}
             </p>
             <h1 className="font-semibold text-slate-900">{exercise.title}</h1>
@@ -144,21 +145,27 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
           <div
             className={`mt-8 rounded-2xl border p-6 ${
               result.score >= 70
-                ? "border-teal-200 bg-teal-50"
+                ? "border-indigo-200 bg-indigo-50"
                 : result.score >= 40
                   ? "border-amber-200 bg-amber-50"
                   : "border-red-200 bg-red-50"
             }`}
           >
-            <h3 className="text-lg font-semibold">
-              Score: {result.score}%
-            </h3>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">
+                {result.score >= 70 ? "🎉" : result.score >= 40 ? "👍" : "💪"}
+              </span>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Score: {result.score}%
+              </h3>
+            </div>
             {result.feedback && (
               <p className="mt-2 text-slate-700">{result.feedback}</p>
             )}
             <button
               onClick={() => router.push("/dashboard")}
-              className="mt-4 rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-700"
+              className="mt-4 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
             >
               Back to dashboard
             </button>
@@ -166,19 +173,44 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
         )}
 
         {topicCompletion && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/40 px-4" role="dialog" aria-modal="true" aria-labelledby="topic-complete-title">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl">
+          <div
+            className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="topic-complete-title"
+          >
+            <div className="w-full max-w-md rounded-2xl border border-white/60 bg-white p-6 text-center shadow-2xl">
               <div className="text-5xl">🎉</div>
-              <h2 id="topic-complete-title" className="mt-3 text-2xl font-bold text-slate-900">Topic completed!</h2>
-              <p className="mt-2 text-slate-600">You&apos;ve completed {topicCompletion.completedTopics} of {topicCompletion.totalTopics} topics in this level ({topicCompletion.percentage}%).</p>
+              <h2 id="topic-complete-title" className="mt-3 text-2xl font-bold text-slate-900">
+                Topic completed!
+              </h2>
+              <p className="mt-2 text-slate-600">
+                You&apos;ve completed {topicCompletion.completedTopics} of {topicCompletion.totalTopics} topics in this level ({topicCompletion.percentage}%).
+              </p>
               {topicCompletion.nextTopic ? (
-                <div className="mt-4 rounded-xl bg-teal-50 p-4 text-left">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Next topic · {topicCompletion.nextTopic.order}</p>
+                <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-left">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                    Next topic · {topicCompletion.nextTopic.order}
+                  </p>
                   <p className="mt-1 font-semibold text-slate-900">{topicCompletion.nextTopic.title}</p>
-                  <p className="text-sm text-teal-800">{topicCompletion.nextTopic.titleUzbek}</p>
+                  <p className="text-sm font-medium text-indigo-700">{topicCompletion.nextTopic.titleUzbek}</p>
                 </div>
-              ) : <p className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">You&apos;ve completed every topic in this level.</p>}
-              <button onClick={() => router.push(topicCompletion.nextTopic ? `/dashboard?topicId=${topicCompletion.nextTopic._id}` : "/dashboard")} className="mt-5 w-full rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700">
+              ) : (
+                <p className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-amber-900">
+                  You&apos;ve completed every topic in this level.
+                </p>
+              )}
+              <button
+                onClick={() =>
+                  router.push(
+                    topicCompletion.nextTopic
+                      ? `/dashboard?topicId=${topicCompletion.nextTopic._id}`
+                      : "/dashboard",
+                  )
+                }
+                className="mt-5 w-full rounded-xl py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
+              >
                 {topicCompletion.nextTopic ? "Continue to next topic lesson →" : "Back to dashboard"}
               </button>
             </div>
@@ -188,6 +220,16 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
     </div>
   );
 }
+
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const cardCls = "rounded-2xl border border-slate-100 bg-white/80 p-6 backdrop-blur shadow-sm";
+const inputCls =
+  "w-full rounded-xl border border-indigo-100 bg-white/70 px-4 py-2.5 outline-none transition duration-200 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white disabled:opacity-60 disabled:bg-slate-50";
+const submitBtnCls =
+  "rounded-xl px-6 py-3 font-semibold text-white transition duration-200 hover:opacity-90 hover:-translate-y-0.5 disabled:opacity-60 disabled:transform-none";
+
+// ─── VocabularyExercise ───────────────────────────────────────────────────────
 
 function VocabularyExercise({
   content,
@@ -218,17 +260,17 @@ function VocabularyExercise({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <h3 className="mb-4 font-semibold">New words</h3>
+      <div className={cardCls}>
+        <h3 className="mb-4 font-semibold text-slate-900">New words</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           {content.words.map((word) => (
             <div
               key={word.uzbek}
-              className="rounded-xl bg-teal-50 px-4 py-3"
+              className="rounded-xl border border-indigo-100 bg-indigo-50/60 px-4 py-3 transition hover:border-indigo-200"
             >
-              <p className="font-semibold text-teal-900">{word.uzbek}</p>
+              <p className="font-semibold text-indigo-900">{word.uzbek}</p>
               {word.transliteration && (
-                <p className="text-xs text-teal-600">{word.transliteration}</p>
+                <p className="text-xs text-indigo-500">{word.transliteration}</p>
               )}
               <p className="text-sm text-slate-600">{word.english}</p>
             </div>
@@ -238,19 +280,16 @@ function VocabularyExercise({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {content.questions.map((q, i) => (
-          <div
-            key={i}
-            className="rounded-2xl border border-slate-200 bg-white p-5"
-          >
-            <p className="mb-3 font-medium">{q.prompt}</p>
+          <div key={i} className={cardCls}>
+            <p className="mb-3 font-medium text-slate-800">{q.prompt}</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {q.options.map((opt) => (
                 <label
                   key={opt}
-                  className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-3 transition ${
+                  className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-3 transition duration-150 ${
                     answers[i] === opt
-                      ? "border-teal-500 bg-teal-50"
-                      : "border-slate-200 hover:border-teal-300"
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-800"
+                      : "border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30"
                   }`}
                 >
                   <input
@@ -262,7 +301,7 @@ function VocabularyExercise({
                       setAnswers((prev) => ({ ...prev, [i]: opt }))
                     }
                     disabled={completed}
-                    className="accent-teal-600"
+                    className="accent-indigo-600"
                   />
                   {opt}
                 </label>
@@ -274,7 +313,8 @@ function VocabularyExercise({
           <button
             type="submit"
             disabled={submitting || Object.keys(answers).length < content.questions.length}
-            className="rounded-xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
+            className={submitBtnCls}
+            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
           >
             {submitting ? "Submitting..." : "Check answers"}
           </button>
@@ -283,6 +323,8 @@ function VocabularyExercise({
     </div>
   );
 }
+
+// ─── GrammarExercise ──────────────────────────────────────────────────────────
 
 function GrammarExercise({
   content,
@@ -314,18 +356,15 @@ function GrammarExercise({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <h3 className="font-semibold text-teal-800">{content.topic}</h3>
+      <div className={cardCls}>
+        <h3 className="font-semibold text-indigo-700">{content.topic}</h3>
         <p className="mt-2 text-slate-600">{content.explanation}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {content.questions.map((q, i) => (
-          <div
-            key={i}
-            className="rounded-2xl border border-slate-200 bg-white p-5"
-          >
-            <p className="mb-2 font-medium">{q.prompt}</p>
+          <div key={i} className={cardCls}>
+            <p className="mb-2 font-medium text-slate-800">{q.prompt}</p>
             {q.hint && (
               <p className="mb-3 text-sm text-slate-500">Hint: {q.hint}</p>
             )}
@@ -336,7 +375,7 @@ function GrammarExercise({
                 setAnswers((prev) => ({ ...prev, [i]: e.target.value }))
               }
               disabled={completed}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none focus:border-teal-500"
+              className={inputCls}
               placeholder="Your answer in Uzbek"
             />
           </div>
@@ -345,7 +384,8 @@ function GrammarExercise({
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
+            className={submitBtnCls}
+            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
           >
             {submitting ? "Submitting..." : "Check answers"}
           </button>
@@ -354,6 +394,8 @@ function GrammarExercise({
     </div>
   );
 }
+
+// ─── ListeningExercise ────────────────────────────────────────────────────────
 
 function ListeningExercise({
   content,
@@ -398,12 +440,13 @@ function ListeningExercise({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center">
+      <div className={`${cardCls} text-center`}>
         <button
           type="button"
           onClick={playAudio}
           disabled={playing}
-          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-teal-600 text-3xl text-white transition hover:bg-teal-700 disabled:opacity-70"
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-3xl text-white shadow-lg shadow-indigo-500/30 transition duration-300 hover:scale-105 hover:shadow-xl disabled:opacity-70"
+          style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
         >
           {playing ? "🔊" : "▶️"}
         </button>
@@ -413,30 +456,23 @@ function ListeningExercise({
         <button
           type="button"
           onClick={() => setRevealed(!revealed)}
-          className="mt-3 text-sm text-teal-600 hover:underline"
+          className="mt-3 text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
         >
           {revealed ? "Hide transcript" : "Show transcript"}
         </button>
         {revealed && (
-          <div className="mt-4 rounded-xl bg-slate-50 p-4 text-left">
+          <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 text-left">
             <p className="font-medium text-slate-900">{content.audioText}</p>
-            <p className="mt-1 text-sm text-slate-500">
-              {content.transliteration}
-            </p>
-            <p className="mt-1 text-sm italic text-slate-600">
-              {content.translation}
-            </p>
+            <p className="mt-1 text-sm text-indigo-500">{content.transliteration}</p>
+            <p className="mt-1 text-sm italic text-slate-600">{content.translation}</p>
           </div>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {content.questions.map((q, i) => (
-          <div
-            key={i}
-            className="rounded-2xl border border-slate-200 bg-white p-5"
-          >
-            <p className="mb-3 font-medium">{q.prompt}</p>
+          <div key={i} className={cardCls}>
+            <p className="mb-3 font-medium text-slate-800">{q.prompt}</p>
             <input
               type="text"
               value={answers[i] ?? ""}
@@ -444,7 +480,7 @@ function ListeningExercise({
                 setAnswers((prev) => ({ ...prev, [i]: e.target.value }))
               }
               disabled={completed}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none focus:border-teal-500"
+              className={inputCls}
             />
           </div>
         ))}
@@ -452,7 +488,8 @@ function ListeningExercise({
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
+            className={submitBtnCls}
+            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
           >
             {submitting ? "Submitting..." : "Check answers"}
           </button>
@@ -461,6 +498,8 @@ function ListeningExercise({
     </div>
   );
 }
+
+// ─── ReadingExercise ──────────────────────────────────────────────────────────
 
 function ReadingExercise({
   content,
@@ -493,13 +532,13 @@ function ReadingExercise({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <div className={cardCls}>
         <p className="leading-relaxed text-slate-900">{content.passage}</p>
-        <p className="mt-3 text-sm text-slate-500">{content.transliteration}</p>
+        <p className="mt-3 text-sm text-indigo-500">{content.transliteration}</p>
         <button
           type="button"
           onClick={() => setShowTranslation(!showTranslation)}
-          className="mt-3 text-sm text-teal-600 hover:underline"
+          className="mt-3 text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
         >
           {showTranslation ? "Hide translation" : "Show translation"}
         </button>
@@ -510,11 +549,8 @@ function ReadingExercise({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {content.questions.map((q, i) => (
-          <div
-            key={i}
-            className="rounded-2xl border border-slate-200 bg-white p-5"
-          >
-            <p className="mb-3 font-medium">{q.prompt}</p>
+          <div key={i} className={cardCls}>
+            <p className="mb-3 font-medium text-slate-800">{q.prompt}</p>
             <input
               type="text"
               value={answers[i] ?? ""}
@@ -522,7 +558,7 @@ function ReadingExercise({
                 setAnswers((prev) => ({ ...prev, [i]: e.target.value }))
               }
               disabled={completed}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none focus:border-teal-500"
+              className={inputCls}
             />
           </div>
         ))}
@@ -530,7 +566,8 @@ function ReadingExercise({
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
+            className={submitBtnCls}
+            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
           >
             {submitting ? "Submitting..." : "Check answers"}
           </button>
@@ -539,6 +576,8 @@ function ReadingExercise({
     </div>
   );
 }
+
+// ─── WritingExercise ──────────────────────────────────────────────────────────
 
 function WritingExercise({
   content,
@@ -578,7 +617,7 @@ function WritingExercise({
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <div className={cardCls}>
         <p className="font-medium text-slate-900">{content.prompt}</p>
         <p className="mt-2 text-sm text-slate-500">
           Keywords to try: {content.keywords.join(", ")}
@@ -589,14 +628,15 @@ function WritingExercise({
         onChange={(e) => setAnswer(e.target.value)}
         disabled={completed}
         rows={5}
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-teal-500"
+        className={`${inputCls} resize-none`}
         placeholder="Write your answer in Uzbek..."
       />
       {!completed && (
         <button
           type="submit"
           disabled={submitting || evaluating || !answer.trim()}
-          className="rounded-xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
+          className={submitBtnCls}
+          style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
         >
           {evaluating || submitting ? "Evaluating..." : "Submit writing"}
         </button>

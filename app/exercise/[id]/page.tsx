@@ -23,19 +23,19 @@ export default function ExercisePage({ params }: PageProps<"/exercise/[id]">) {
 
   if (authLoading || exercise === undefined) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-600 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
       </div>
     );
   }
 
   if (!exercise) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <p className="text-slate-600">Exercise not found</p>
         <button
           onClick={() => router.push("/dashboard")}
-          className="text-teal-600 hover:underline"
+          className="text-indigo-600 hover:underline"
         >
           Back to dashboard
         </button>
@@ -45,11 +45,11 @@ export default function ExercisePage({ params }: PageProps<"/exercise/[id]">) {
 
   if (exercise.type === "speaking") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="text-slate-600">This exercise is no longer available.</p>
         <button
           onClick={() => router.push("/dashboard")}
-          className="text-teal-600 hover:underline"
+          className="text-indigo-600 hover:underline"
         >
           Back to dashboard
         </button>
