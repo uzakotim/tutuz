@@ -22,11 +22,11 @@ type SkillColor = {
   topBar: string; badge: string; badgeText: string;
 };
 const SKILL_COLORS: Record<string, SkillColor> = {
-  vocabulary: { border: "border-indigo-200", bg: "bg-indigo-50/60",  text: "text-indigo-700",  topBar: "bg-indigo-500",  badge: "bg-indigo-100",  badgeText: "text-indigo-800" },
-  grammar:    { border: "border-violet-200", bg: "bg-violet-50/60",  text: "text-violet-700",  topBar: "bg-violet-500",  badge: "bg-violet-100",  badgeText: "text-violet-800" },
-  listening:  { border: "border-sky-200",    bg: "bg-sky-50/60",     text: "text-sky-700",     topBar: "bg-sky-500",     badge: "bg-sky-100",     badgeText: "text-sky-800"    },
-  reading:    { border: "border-emerald-200",bg: "bg-emerald-50/60", text: "text-emerald-700", topBar: "bg-emerald-500", badge: "bg-emerald-100", badgeText: "text-emerald-800"},
-  writing:    { border: "border-amber-200",  bg: "bg-amber-50/60",   text: "text-amber-700",   topBar: "bg-amber-500",   badge: "bg-amber-100",   badgeText: "text-amber-800"  },
+  vocabulary: { border: "border-indigo-200", bg: "bg-indigo-50/60", text: "text-indigo-700", topBar: "bg-indigo-500", badge: "bg-indigo-100", badgeText: "text-indigo-800" },
+  grammar: { border: "border-violet-200", bg: "bg-violet-50/60", text: "text-violet-700", topBar: "bg-violet-500", badge: "bg-violet-100", badgeText: "text-violet-800" },
+  listening: { border: "border-sky-200", bg: "bg-sky-50/60", text: "text-sky-700", topBar: "bg-sky-500", badge: "bg-sky-100", badgeText: "text-sky-800" },
+  reading: { border: "border-emerald-200", bg: "bg-emerald-50/60", text: "text-emerald-700", topBar: "bg-emerald-500", badge: "bg-emerald-100", badgeText: "text-emerald-800" },
+  writing: { border: "border-amber-200", bg: "bg-amber-50/60", text: "text-amber-700", topBar: "bg-amber-500", badge: "bg-amber-100", badgeText: "text-amber-800" },
 };
 
 // ─── Nav tabs ─────────────────────────────────────────────────────────────────
@@ -251,7 +251,7 @@ export function Dashboard() {
     <div className="flex h-screen flex-col overflow-hidden">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="shrink-0 glass-header z-10">
+      <header className="sticky top-0 z-10 glass-header">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
@@ -265,11 +265,10 @@ export function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? "bg-white text-indigo-700 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-all duration-200 ${activeTab === tab.id
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+                  }`}
               >
                 <span className="h-4 w-4">{tab.icon}</span>
                 {tab.label}
@@ -384,9 +383,8 @@ export function Dashboard() {
                         <Link
                           key={type}
                           href={exercise ? `/exercise/${exercise._id}` : "#"}
-                          className={`group relative overflow-hidden rounded-2xl border transition duration-200 ${
-                            done ? `${sc.border} ${sc.bg}` : "border-slate-100 bg-white hover:border-indigo-200 card-hover"
-                          } ${!exercise ? "pointer-events-none opacity-50" : ""}`}
+                          className={`group relative overflow-hidden rounded-2xl border transition duration-200 ${done ? `${sc.border} ${sc.bg}` : "border-slate-100 bg-white hover:border-indigo-200 card-hover"
+                            } ${!exercise ? "pointer-events-none opacity-50" : ""}`}
                         >
                           <div className={`h-0.5 w-full ${sc.topBar}`} />
                           <div className="p-4">
@@ -664,9 +662,8 @@ export function Dashboard() {
                       <button
                         key={level}
                         onClick={() => void updateLevel({ level })}
-                        className={`rounded-xl px-5 py-2 text-sm font-bold transition duration-200 ${
-                          active ? "text-white shadow-md shadow-indigo-500/25" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
-                        }`}
+                        className={`rounded-xl px-5 py-2 text-sm font-bold transition duration-200 ${active ? "text-white shadow-md shadow-indigo-500/25" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
+                          }`}
                         style={active ? { background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" } : undefined}
                       >
                         {level}
@@ -717,9 +714,8 @@ export function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-1 flex-col items-center justify-center gap-1 py-3 text-xs font-semibold transition-colors duration-150 ${
-                  active ? "text-indigo-600" : "text-slate-400 hover:text-slate-600"
-                }`}
+                className={`flex flex-1 flex-col items-center justify-center gap-1 py-3 text-xs font-semibold transition-colors duration-150 ${active ? "text-indigo-600" : "text-slate-400 hover:text-slate-600"
+                  }`}
               >
                 <span className={`flex h-6 w-6 items-center justify-center transition-transform duration-150 ${active ? "scale-110" : ""}`}>
                   {tab.icon}
