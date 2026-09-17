@@ -22,6 +22,7 @@ import {
   type WritingContent,
 } from "@/lib/types";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface ExerciseDoc {
   _id: Id<"exercises">;
   type: ExerciseType;
@@ -34,6 +35,45 @@ interface ExerciseDoc {
   userAnswer?: string;
 }
 
+// ─── Skill color config ────────────────────────────────────────────────────────
+const SKILL_COLORS: Record<string, { border: string; bg: string; text: string; pill: string; pillText: string; bar: string }> = {
+  vocabulary: { border: "border-indigo-200", bg: "bg-indigo-50",  text: "text-indigo-700", pill: "bg-indigo-100", pillText: "text-indigo-700", bar: "bg-indigo-500" },
+  grammar:    { border: "border-violet-200", bg: "bg-violet-50",  text: "text-violet-700", pill: "bg-violet-100", pillText: "text-violet-700", bar: "bg-violet-500" },
+  listening:  { border: "border-sky-200",    bg: "bg-sky-50",     text: "text-sky-700",    pill: "bg-sky-100",    pillText: "text-sky-700",    bar: "bg-sky-500"    },
+  reading:    { border: "border-emerald-200",bg: "bg-emerald-50", text: "text-emerald-700",pill: "bg-emerald-100",pillText: "text-emerald-700",bar: "bg-emerald-500"},
+  writing:    { border: "border-amber-200",  bg: "bg-amber-50",   text: "text-amber-700",  pill: "bg-amber-100",  pillText: "text-amber-700",  bar: "bg-amber-500"  },
+};
+
+// ─── Shared styles ─────────────────────────────────────────────────────────────
+const cardCls = "rounded-2xl border border-slate-100 bg-white/80 p-6 backdrop-blur shadow-sm";
+const inputCls =
+  "w-full rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white disabled:opacity-60 disabled:bg-slate-50";
+const submitBtnCls =
+  "group relative overflow-hidden rounded-xl px-7 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 transition duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:transform-none";
+
+// ─── Helper components ─────────────────────────────────────────────────────────
+function InfoCallout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mb-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3.5 backdrop-blur">
+      <svg className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+      </svg>
+      <p className="text-sm text-slate-600 leading-relaxed">{children}</p>
+    </div>
+  );
+}
+
+function LoadingDots() {
+  return (
+    <span className="dot-spinner inline-flex items-center gap-1">
+      <span />
+      <span />
+      <span />
+    </span>
+  );
+}
+
+// ─── Main ExerciseView ────────────────────────────────────────────────────────
 export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
   const router = useRouter();
   const submitExercise = useMutation(api.exercises.submitExercise);
@@ -75,30 +115,50 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
     }
   }
 
+  const sc = SKILL_COLORS[exercise.type] ?? SKILL_COLORS.vocabulary;
   const content = exercise.content;
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-white/50 bg-white/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3.5">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-10 glass-header">
+        <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 rounded-xl border border-indigo-100 bg-white/80 px-3 py-1.5 text-sm font-medium text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-800"
+            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:border-indigo-300 hover:text-indigo-700"
           >
-            ← Back
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
+            Back
           </Link>
-          <div>
-            <p className="text-xs font-medium text-indigo-500">
-              {EXERCISE_ICONS[exercise.type]} {EXERCISE_LABELS[exercise.type]}
-            </p>
-            <h1 className="font-semibold text-slate-900">{exercise.title}</h1>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-0.5 text-xs font-bold ${sc.pill} ${sc.pillText}`}>
+                {EXERCISE_ICONS[exercise.type]} {EXERCISE_LABELS[exercise.type]}
+              </span>
+            </div>
+            <h1 className="mt-0.5 truncate font-semibold text-slate-900">{exercise.title}</h1>
           </div>
+
+          {/* Completion badge */}
+          {exercise.status === "completed" && (
+            <span className="shrink-0 flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+              </svg>
+              Done
+            </span>
+          )}
         </div>
+
+        {/* Skill color bar */}
+        <div className={`h-0.5 ${sc.bar}`} />
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-8">
-        <p className="mb-6 text-slate-600">{exercise.instructions}</p>
+        <InfoCallout>{exercise.instructions}</InfoCallout>
 
         {exercise.type === "vocabulary" && (
           <VocabularyExercise
@@ -141,30 +201,34 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
           />
         )}
 
+        {/* ── Result panel ──────────────────────────────────────────────────── */}
         {result && (
-          <div
-            className={`mt-8 rounded-2xl border p-6 ${
-              result.score >= 70
-                ? "border-indigo-200 bg-indigo-50"
-                : result.score >= 40
-                  ? "border-amber-200 bg-amber-50"
-                  : "border-red-200 bg-red-50"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">
+          <div className={`mt-8 animate-scale-bounce rounded-2xl border p-6 ${
+            result.score >= 70
+              ? "border-emerald-200 bg-emerald-50"
+              : result.score >= 40
+                ? "border-amber-200 bg-amber-50"
+                : "border-red-200 bg-red-50"
+          }`}>
+            <div className="flex items-center gap-4">
+              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl ${
+                result.score >= 70 ? "bg-emerald-100" : result.score >= 40 ? "bg-amber-100" : "bg-red-100"
+              }`}>
                 {result.score >= 70 ? "🎉" : result.score >= 40 ? "👍" : "💪"}
-              </span>
-              <h3 className="text-lg font-semibold text-slate-900">
-                Score: {result.score}%
-              </h3>
+              </div>
+              <div>
+                <p className={`text-xs font-bold uppercase tracking-wide ${
+                  result.score >= 70 ? "text-emerald-600" : result.score >= 40 ? "text-amber-600" : "text-red-500"
+                }`}>Your score</p>
+                <p className="text-4xl font-extrabold text-slate-900">{result.score}<span className="text-2xl text-slate-400">%</span></p>
+              </div>
             </div>
             {result.feedback && (
-              <p className="mt-2 text-slate-700">{result.feedback}</p>
+              <p className="mt-4 text-sm text-slate-700 leading-relaxed">{result.feedback}</p>
             )}
             <button
               onClick={() => router.push("/dashboard")}
-              className="mt-4 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+              className="mt-5 rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
               style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
             >
               Back to dashboard
@@ -172,34 +236,49 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
           </div>
         )}
 
+        {/* ── Topic completion modal ─────────────────────────────────────────── */}
         {topicCompletion && (
           <div
-            className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm"
+            className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
             aria-labelledby="topic-complete-title"
           >
-            <div className="w-full max-w-md rounded-2xl border border-white/60 bg-white p-6 text-center shadow-2xl">
-              <div className="text-5xl">🎉</div>
-              <h2 id="topic-complete-title" className="mt-3 text-2xl font-bold text-slate-900">
+            <div className="w-full max-w-md animate-scale-bounce glass-elevated rounded-3xl p-8 text-center">
+              <div className="mb-4 text-6xl animate-float">🎉</div>
+              <h2 id="topic-complete-title" className="text-2xl font-bold text-slate-900">
                 Topic completed!
               </h2>
-              <p className="mt-2 text-slate-600">
-                You&apos;ve completed {topicCompletion.completedTopics} of {topicCompletion.totalTopics} topics in this level ({topicCompletion.percentage}%).
+              <p className="mt-2 text-sm text-slate-500">
+                {topicCompletion.completedTopics} of {topicCompletion.totalTopics} topics in this level &mdash; {topicCompletion.percentage}% done
               </p>
+
+              {/* Level progress mini bar */}
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
+                  style={{
+                    width: `${topicCompletion.percentage}%`,
+                    background: "linear-gradient(90deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)",
+                  }}
+                />
+              </div>
+
               {topicCompletion.nextTopic ? (
-                <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-left">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
-                    Next topic · {topicCompletion.nextTopic.order}
+                <div className="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 text-left">
+                  <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+                    Up next &middot; Topic {topicCompletion.nextTopic.order}
                   </p>
-                  <p className="mt-1 font-semibold text-slate-900">{topicCompletion.nextTopic.title}</p>
+                  <p className="mt-1 font-bold text-slate-900">{topicCompletion.nextTopic.title}</p>
                   <p className="text-sm font-medium text-indigo-700">{topicCompletion.nextTopic.titleUzbek}</p>
                 </div>
               ) : (
-                <p className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-amber-900">
-                  You&apos;ve completed every topic in this level.
-                </p>
+                <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-amber-900">
+                  <p className="font-semibold">🏆 Level complete!</p>
+                  <p className="mt-0.5 text-sm">You&apos;ve mastered every topic in this level.</p>
+                </div>
               )}
+
               <button
                 onClick={() =>
                   router.push(
@@ -208,10 +287,10 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
                       : "/dashboard",
                   )
                 }
-                className="mt-5 w-full rounded-xl py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                className="group relative mt-5 w-full overflow-hidden rounded-xl py-3.5 text-sm font-bold text-white transition hover:opacity-95"
                 style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
               >
-                {topicCompletion.nextTopic ? "Continue to next topic lesson →" : "Back to dashboard"}
+                {topicCompletion.nextTopic ? "Continue to next topic →" : "Back to dashboard"}
               </button>
             </div>
           </div>
@@ -221,16 +300,7 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
   );
 }
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
-
-const cardCls = "rounded-2xl border border-slate-100 bg-white/80 p-6 backdrop-blur shadow-sm";
-const inputCls =
-  "w-full rounded-xl border border-indigo-100 bg-white/70 px-4 py-2.5 outline-none transition duration-200 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white disabled:opacity-60 disabled:bg-slate-50";
-const submitBtnCls =
-  "rounded-xl px-6 py-3 font-semibold text-white transition duration-200 hover:opacity-90 hover:-translate-y-0.5 disabled:opacity-60 disabled:transform-none";
-
 // ─── VocabularyExercise ───────────────────────────────────────────────────────
-
 function VocabularyExercise({
   content,
   onSubmit,
@@ -261,18 +331,18 @@ function VocabularyExercise({
   return (
     <div className="space-y-6">
       <div className={cardCls}>
-        <h3 className="mb-4 font-semibold text-slate-900">New words</h3>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">New words</h3>
+        <div className="grid gap-2.5 sm:grid-cols-2">
           {content.words.map((word) => (
             <div
               key={word.uzbek}
-              className="rounded-xl border border-indigo-100 bg-indigo-50/60 px-4 py-3 transition hover:border-indigo-200"
+              className="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-violet-50/40 px-4 py-3 transition hover:border-indigo-200"
             >
-              <p className="font-semibold text-indigo-900">{word.uzbek}</p>
+              <p className="font-bold text-indigo-900">{word.uzbek}</p>
               {word.transliteration && (
-                <p className="text-xs text-indigo-500">{word.transliteration}</p>
+                <p className="text-xs text-indigo-400 mt-0.5">{word.transliteration}</p>
               )}
-              <p className="text-sm text-slate-600">{word.english}</p>
+              <p className="mt-1 text-sm text-slate-600">{word.english}</p>
             </div>
           ))}
         </div>
@@ -281,31 +351,41 @@ function VocabularyExercise({
       <form onSubmit={handleSubmit} className="space-y-4">
         {content.questions.map((q, i) => (
           <div key={i} className={cardCls}>
-            <p className="mb-3 font-medium text-slate-800">{q.prompt}</p>
+            <p className="mb-3 font-semibold text-slate-800">{q.prompt}</p>
             <div className="grid gap-2 sm:grid-cols-2">
-              {q.options.map((opt) => (
-                <label
-                  key={opt}
-                  className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-3 transition duration-150 ${
-                    answers[i] === opt
-                      ? "border-indigo-400 bg-indigo-50 text-indigo-800"
-                      : "border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name={`q-${i}`}
-                    value={opt}
-                    checked={answers[i] === opt}
-                    onChange={() =>
-                      setAnswers((prev) => ({ ...prev, [i]: opt }))
-                    }
-                    disabled={completed}
-                    className="accent-indigo-600"
-                  />
-                  {opt}
-                </label>
-              ))}
+              {q.options.map((opt) => {
+                const selected = answers[i] === opt;
+                return (
+                  <label
+                    key={opt}
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition duration-150 ${
+                      selected
+                        ? "border-indigo-400 bg-indigo-50 text-indigo-900 shadow-sm shadow-indigo-100"
+                        : "border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30"
+                    }`}
+                  >
+                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                      selected ? "border-indigo-500 bg-indigo-500" : "border-slate-300"
+                    }`}>
+                      {selected && (
+                        <svg className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </span>
+                    <input
+                      type="radio"
+                      name={`q-${i}`}
+                      value={opt}
+                      checked={selected}
+                      onChange={() => setAnswers((prev) => ({ ...prev, [i]: opt }))}
+                      disabled={completed}
+                      className="sr-only"
+                    />
+                    <span className="text-sm">{opt}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -316,7 +396,10 @@ function VocabularyExercise({
             className={submitBtnCls}
             style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
           >
-            {submitting ? "Submitting..." : "Check answers"}
+            <span className="relative z-10 flex items-center gap-2">
+              {submitting ? <><LoadingDots /> Checking…</> : "Check answers"}
+            </span>
+            <span aria-hidden="true" className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
           </button>
         )}
       </form>
@@ -325,7 +408,6 @@ function VocabularyExercise({
 }
 
 // ─── GrammarExercise ──────────────────────────────────────────────────────────
-
 function GrammarExercise({
   content,
   onSubmit,
@@ -356,24 +438,27 @@ function GrammarExercise({
 
   return (
     <div className="space-y-6">
-      <div className={cardCls}>
-        <h3 className="font-semibold text-indigo-700">{content.topic}</h3>
-        <p className="mt-2 text-slate-600">{content.explanation}</p>
+      <div className={`${cardCls} border-l-4 border-l-violet-400`}>
+        <h3 className="font-bold text-violet-700">{content.topic}</h3>
+        <p className="mt-2 text-sm text-slate-600 leading-relaxed">{content.explanation}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {content.questions.map((q, i) => (
           <div key={i} className={cardCls}>
-            <p className="mb-2 font-medium text-slate-800">{q.prompt}</p>
+            <p className="mb-2 font-semibold text-slate-800">{q.prompt}</p>
             {q.hint && (
-              <p className="mb-3 text-sm text-slate-500">Hint: {q.hint}</p>
+              <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <p className="text-xs text-amber-700">Hint: {q.hint}</p>
+              </div>
             )}
             <input
               type="text"
               value={answers[i] ?? ""}
-              onChange={(e) =>
-                setAnswers((prev) => ({ ...prev, [i]: e.target.value }))
-              }
+              onChange={(e) => setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
               disabled={completed}
               className={inputCls}
               placeholder="Your answer in Uzbek"
@@ -385,9 +470,12 @@ function GrammarExercise({
             type="submit"
             disabled={submitting}
             className={submitBtnCls}
-            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
+            style={{ background: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)" }}
           >
-            {submitting ? "Submitting..." : "Check answers"}
+            <span className="relative z-10 flex items-center gap-2">
+              {submitting ? <><LoadingDots /> Checking…</> : "Check answers"}
+            </span>
+            <span aria-hidden="true" className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
           </button>
         )}
       </form>
@@ -396,7 +484,6 @@ function GrammarExercise({
 }
 
 // ─── ListeningExercise ────────────────────────────────────────────────────────
-
 function ListeningExercise({
   content,
   onSubmit,
@@ -441,30 +528,50 @@ function ListeningExercise({
   return (
     <div className="space-y-6">
       <div className={`${cardCls} text-center`}>
-        <button
-          type="button"
-          onClick={playAudio}
-          disabled={playing}
-          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-3xl text-white shadow-lg shadow-indigo-500/30 transition duration-300 hover:scale-105 hover:shadow-xl disabled:opacity-70"
-          style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
-        >
-          {playing ? "🔊" : "▶️"}
-        </button>
-        <p className="mt-4 text-sm text-slate-500">
-          Listen carefully, then answer the questions below.
+        {/* Play button with pulse ring */}
+        <div className="relative mx-auto mb-4 flex h-24 w-24 items-center justify-center">
+          {playing && (
+            <>
+              <span className="absolute inset-0 rounded-full bg-sky-400/30 animate-ping" />
+              <span className="absolute inset-2 rounded-full bg-sky-400/20 animate-ping" style={{ animationDelay: "0.3s" }} />
+            </>
+          )}
+          <button
+            type="button"
+            onClick={playAudio}
+            disabled={playing}
+            className="relative flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg shadow-sky-400/30 transition duration-300 hover:scale-105 hover:shadow-xl disabled:opacity-80"
+            style={{ background: "linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)" }}
+          >
+            {playing ? (
+              <svg className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                <path fillRule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="h-8 w-8 translate-x-0.5" viewBox="0 0 24 24" fill="currentColor">
+                <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        <p className="text-sm text-slate-500">
+          {playing ? "Playing…" : "Tap to listen, then answer the questions below."}
         </p>
+
         <button
           type="button"
           onClick={() => setRevealed(!revealed)}
-          className="mt-3 text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+          className="mt-3 text-sm font-medium text-sky-600 transition hover:text-sky-800"
         >
-          {revealed ? "Hide transcript" : "Show transcript"}
+          {revealed ? "Hide transcript ↑" : "Show transcript ↓"}
         </button>
+
         {revealed && (
-          <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 text-left">
-            <p className="font-medium text-slate-900">{content.audioText}</p>
-            <p className="mt-1 text-sm text-indigo-500">{content.transliteration}</p>
-            <p className="mt-1 text-sm italic text-slate-600">{content.translation}</p>
+          <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50/60 p-4 text-left animate-slide-down">
+            <p className="font-semibold text-slate-900 leading-relaxed">{content.audioText}</p>
+            <p className="mt-1.5 text-sm text-sky-500 italic">{content.transliteration}</p>
+            <p className="mt-1 text-sm text-slate-600 italic">{content.translation}</p>
           </div>
         )}
       </div>
@@ -472,15 +579,14 @@ function ListeningExercise({
       <form onSubmit={handleSubmit} className="space-y-4">
         {content.questions.map((q, i) => (
           <div key={i} className={cardCls}>
-            <p className="mb-3 font-medium text-slate-800">{q.prompt}</p>
+            <p className="mb-3 font-semibold text-slate-800">{q.prompt}</p>
             <input
               type="text"
               value={answers[i] ?? ""}
-              onChange={(e) =>
-                setAnswers((prev) => ({ ...prev, [i]: e.target.value }))
-              }
+              onChange={(e) => setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
               disabled={completed}
               className={inputCls}
+              placeholder="Your answer…"
             />
           </div>
         ))}
@@ -489,9 +595,12 @@ function ListeningExercise({
             type="submit"
             disabled={submitting}
             className={submitBtnCls}
-            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
+            style={{ background: "linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)" }}
           >
-            {submitting ? "Submitting..." : "Check answers"}
+            <span className="relative z-10 flex items-center gap-2">
+              {submitting ? <><LoadingDots /> Checking…</> : "Check answers"}
+            </span>
+            <span aria-hidden="true" className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
           </button>
         )}
       </form>
@@ -500,7 +609,6 @@ function ListeningExercise({
 }
 
 // ─── ReadingExercise ──────────────────────────────────────────────────────────
-
 function ReadingExercise({
   content,
   onSubmit,
@@ -532,33 +640,34 @@ function ReadingExercise({
 
   return (
     <div className="space-y-6">
-      <div className={cardCls}>
-        <p className="leading-relaxed text-slate-900">{content.passage}</p>
-        <p className="mt-3 text-sm text-indigo-500">{content.transliteration}</p>
+      <div className={`${cardCls} border-l-4 border-l-emerald-400`}>
+        <p className="text-base leading-[1.8] text-slate-900">{content.passage}</p>
+        {content.transliteration && (
+          <p className="mt-3 text-sm text-emerald-500 italic leading-relaxed">{content.transliteration}</p>
+        )}
         <button
           type="button"
           onClick={() => setShowTranslation(!showTranslation)}
-          className="mt-3 text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+          className="mt-3 text-sm font-medium text-emerald-600 transition hover:text-emerald-800"
         >
-          {showTranslation ? "Hide translation" : "Show translation"}
+          {showTranslation ? "Hide translation ↑" : "Show translation ↓"}
         </button>
         {showTranslation && (
-          <p className="mt-2 italic text-slate-600">{content.translation}</p>
+          <p className="mt-2 text-sm italic text-slate-600 leading-relaxed animate-slide-down">{content.translation}</p>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {content.questions.map((q, i) => (
           <div key={i} className={cardCls}>
-            <p className="mb-3 font-medium text-slate-800">{q.prompt}</p>
+            <p className="mb-3 font-semibold text-slate-800">{q.prompt}</p>
             <input
               type="text"
               value={answers[i] ?? ""}
-              onChange={(e) =>
-                setAnswers((prev) => ({ ...prev, [i]: e.target.value }))
-              }
+              onChange={(e) => setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
               disabled={completed}
               className={inputCls}
+              placeholder="Your answer…"
             />
           </div>
         ))}
@@ -567,9 +676,12 @@ function ReadingExercise({
             type="submit"
             disabled={submitting}
             className={submitBtnCls}
-            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
+            style={{ background: "linear-gradient(135deg, #059669 0%, #34D399 100%)" }}
           >
-            {submitting ? "Submitting..." : "Check answers"}
+            <span className="relative z-10 flex items-center gap-2">
+              {submitting ? <><LoadingDots /> Checking…</> : "Check answers"}
+            </span>
+            <span aria-hidden="true" className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
           </button>
         )}
       </form>
@@ -578,7 +690,6 @@ function ReadingExercise({
 }
 
 // ─── WritingExercise ──────────────────────────────────────────────────────────
-
 function WritingExercise({
   content,
   onSubmit,
@@ -615,30 +726,51 @@ function WritingExercise({
     }
   }
 
+  const wordCount = answer.trim() ? answer.trim().split(/\s+/).length : 0;
+
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
-      <div className={cardCls}>
-        <p className="font-medium text-slate-900">{content.prompt}</p>
-        <p className="mt-2 text-sm text-slate-500">
-          Keywords to try: {content.keywords.join(", ")}
+      <div className={`${cardCls} border-l-4 border-l-amber-400`}>
+        <p className="font-semibold text-slate-900 leading-relaxed">{content.prompt}</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide self-center mr-1">Keywords:</span>
+          {content.keywords.map((kw) => (
+            <span
+              key={kw}
+              className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800"
+            >
+              {kw}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Writing surface */}
+      <div className="relative">
+        <textarea
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          disabled={completed}
+          rows={6}
+          className="w-full resize-none rounded-2xl border border-slate-200 bg-white/80 px-5 py-4 text-sm text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:bg-white disabled:opacity-60 disabled:bg-slate-50"
+          placeholder="Write your answer in Uzbek…"
+        />
+        <p className="absolute bottom-3 right-4 text-xs text-slate-400">
+          {wordCount} word{wordCount !== 1 ? "s" : ""}
         </p>
       </div>
-      <textarea
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        disabled={completed}
-        rows={5}
-        className={`${inputCls} resize-none`}
-        placeholder="Write your answer in Uzbek..."
-      />
+
       {!completed && (
         <button
           type="submit"
           disabled={submitting || evaluating || !answer.trim()}
           className={submitBtnCls}
-          style={{ background: "linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%)" }}
+          style={{ background: "linear-gradient(135deg, #D97706 0%, #FBBF24 100%)" }}
         >
-          {evaluating || submitting ? "Evaluating..." : "Submit writing"}
+          <span className="relative z-10 flex items-center gap-2">
+            {evaluating || submitting ? <><LoadingDots /> Evaluating…</> : "Submit writing"}
+          </span>
+          <span aria-hidden="true" className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
         </button>
       )}
     </form>
