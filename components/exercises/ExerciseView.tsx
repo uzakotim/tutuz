@@ -37,11 +37,11 @@ interface ExerciseDoc {
 
 // ─── Skill color config ────────────────────────────────────────────────────────
 const SKILL_COLORS: Record<string, { border: string; bg: string; text: string; pill: string; pillText: string; bar: string }> = {
-  vocabulary: { border: "border-indigo-200", bg: "bg-indigo-50",  text: "text-indigo-700", pill: "bg-indigo-100", pillText: "text-indigo-700", bar: "bg-indigo-500" },
-  grammar:    { border: "border-violet-200", bg: "bg-violet-50",  text: "text-violet-700", pill: "bg-violet-100", pillText: "text-violet-700", bar: "bg-violet-500" },
-  listening:  { border: "border-sky-200",    bg: "bg-sky-50",     text: "text-sky-700",    pill: "bg-sky-100",    pillText: "text-sky-700",    bar: "bg-sky-500"    },
-  reading:    { border: "border-emerald-200",bg: "bg-emerald-50", text: "text-emerald-700",pill: "bg-emerald-100",pillText: "text-emerald-700",bar: "bg-emerald-500"},
-  writing:    { border: "border-amber-200",  bg: "bg-amber-50",   text: "text-amber-700",  pill: "bg-amber-100",  pillText: "text-amber-700",  bar: "bg-amber-500"  },
+  vocabulary: { border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", pill: "bg-indigo-100", pillText: "text-indigo-700", bar: "bg-indigo-500" },
+  grammar: { border: "border-violet-200", bg: "bg-violet-50", text: "text-violet-700", pill: "bg-violet-100", pillText: "text-violet-700", bar: "bg-violet-500" },
+  listening: { border: "border-sky-200", bg: "bg-sky-50", text: "text-sky-700", pill: "bg-sky-100", pillText: "text-sky-700", bar: "bg-sky-500" },
+  reading: { border: "border-emerald-200", bg: "bg-emerald-50", text: "text-emerald-700", pill: "bg-emerald-100", pillText: "text-emerald-700", bar: "bg-emerald-500" },
+  writing: { border: "border-amber-200", bg: "bg-amber-50", text: "text-amber-700", pill: "bg-amber-100", pillText: "text-amber-700", bar: "bg-amber-500" },
 };
 
 // ─── Shared styles ─────────────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
   const content = exercise.content;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-grid">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-10 glass-header">
         <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3">
@@ -203,23 +203,20 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
 
         {/* ── Result panel ──────────────────────────────────────────────────── */}
         {result && (
-          <div className={`mt-8 animate-scale-bounce rounded-2xl border p-6 ${
-            result.score >= 70
+          <div className={`mt-8 animate-scale-bounce rounded-2xl border p-6 ${result.score >= 70
               ? "border-emerald-200 bg-emerald-50"
               : result.score >= 40
                 ? "border-amber-200 bg-amber-50"
                 : "border-red-200 bg-red-50"
-          }`}>
+            }`}>
             <div className="flex items-center gap-4">
-              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl ${
-                result.score >= 70 ? "bg-emerald-100" : result.score >= 40 ? "bg-amber-100" : "bg-red-100"
-              }`}>
+              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl ${result.score >= 70 ? "bg-emerald-100" : result.score >= 40 ? "bg-amber-100" : "bg-red-100"
+                }`}>
                 {result.score >= 70 ? "🎉" : result.score >= 40 ? "👍" : "💪"}
               </div>
               <div>
-                <p className={`text-xs font-bold uppercase tracking-wide ${
-                  result.score >= 70 ? "text-emerald-600" : result.score >= 40 ? "text-amber-600" : "text-red-500"
-                }`}>Your score</p>
+                <p className={`text-xs font-bold uppercase tracking-wide ${result.score >= 70 ? "text-emerald-600" : result.score >= 40 ? "text-amber-600" : "text-red-500"
+                  }`}>Your score</p>
                 <p className="text-4xl font-extrabold text-slate-900">{result.score}<span className="text-2xl text-slate-400">%</span></p>
               </div>
             </div>
@@ -358,15 +355,13 @@ function VocabularyExercise({
                 return (
                   <label
                     key={opt}
-                    className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition duration-150 ${
-                      selected
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition duration-150 ${selected
                         ? "border-indigo-400 bg-indigo-50 text-indigo-900 shadow-sm shadow-indigo-100"
                         : "border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30"
-                    }`}
+                      }`}
                   >
-                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
-                      selected ? "border-indigo-500 bg-indigo-500" : "border-slate-300"
-                    }`}>
+                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${selected ? "border-indigo-500 bg-indigo-500" : "border-slate-300"
+                      }`}>
                       {selected && (
                         <svg className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />

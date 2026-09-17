@@ -248,7 +248,7 @@ export function Dashboard() {
 
   return (
     // Full-screen flex column: header | content | bottom-nav
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden bg-grid">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-10 glass-header">
