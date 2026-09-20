@@ -117,7 +117,7 @@ export default function HomePage() {
             <img src="/icon.png" alt="Tutuz" className="relative h-16 w-16 rounded-2xl shadow-lg" />
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-white/80 px-4 py-1.5 text-sm font-medium text-indigo-700 shadow-sm shadow-indigo-100 ">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-white/80 px-4 py-1.5 text-sm font-medium text-indigo-700 shadow-sm shadow-indigo-100">
             <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
             AI-powered · A1 to B2 · Free forever
           </div>
