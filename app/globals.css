@@ -277,7 +277,11 @@ button, a, input, select, textarea {
   outline: none;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.35);
 }
-
+/* Update your header or top container safe area utility */
+.safe-top {
+  /* Uses 1rem (16px) on iPads, or the notch size on iPhones if larger */
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
 /* Safe area for iPhone notch / home bar */
 .safe-bottom {
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
