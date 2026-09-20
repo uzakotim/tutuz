@@ -251,7 +251,7 @@ export function Dashboard() {
     <div className="flex h-screen flex-col overflow-hidden bg-grid">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-10 glass-header">
+      <header className="sticky bg-white top-0 z-10">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
@@ -279,7 +279,7 @@ export function Dashboard() {
           {/* Right side: streak + avatar */}
           <div className="flex items-center gap-2">
             {profile.streakDays > 0 && (
-              <div className="hidden sm:flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1">
+              <div className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1">
                 <StreakIcon className="h-3.5 w-3.5 text-amber-500" />
                 <span className="text-xs font-bold text-amber-700">{profile.streakDays}</span>
               </div>

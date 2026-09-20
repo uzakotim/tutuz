@@ -121,7 +121,7 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
   return (
     <div className="min-h-screen bg-grid">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-10 glass-header">
+      <header className="sticky bg-white top-0 z-10">
         <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3">
           <Link
             href="/dashboard"
