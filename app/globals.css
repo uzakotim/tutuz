@@ -41,14 +41,13 @@
   --background: #F8FAFC;
   --foreground: #0F172A;
   --surface: #FFFFFF;
-  --surface-muted: #F1F5F9;
 
   /* Fallback for iOS/iPadOS Safari PWA full-screen container */
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   /* Gradients */
   --gradient-brand: linear-gradient(135deg, #3B82F6 0%, #4F46E5 50%, #7C3AED 100%);
-  --gradient-subtle: linear-gradient(160deg, #F8FAFF 0%, #F3F0FF 50%, #FFF8EE 100%);
+  /* --gradient-subtle: linear-gradient(160deg, #F8FAFF 0%, #F3F0FF 50%, #FFF8EE 100%); */
 }
 
 @theme inline {
