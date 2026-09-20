@@ -77,20 +77,24 @@ button, a, input, select, textarea {
 .glass {
   background: rgba(255, 255, 255, 0.72);
   /* backdrop-filter: blur(16px); */
-  /* -webkit-backdrop-filter: blur(16px); */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .glass-elevated {
   background: rgba(255, 255, 255, 0.90);
   /* backdrop-filter: blur(24px); */
-  /* -webkit-backdrop-filter: blur(24px); */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.70);
   box-shadow: 0 20px 60px -10px rgba(15, 23, 42, 0.12), 0 4px 16px -4px rgba(79, 70, 229, 0.06);
 }
 
 .glass-header {
   background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.50);
 }
 
