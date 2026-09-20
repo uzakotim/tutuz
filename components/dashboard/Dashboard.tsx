@@ -251,7 +251,7 @@ export function Dashboard() {
     <div className="flex h-screen flex-col overflow-hidden bg-grid">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="sticky bg-white top-0 z-10">
+      <header className="sticky top-0 z-40 w-full bg-white backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
