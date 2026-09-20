@@ -45,7 +45,7 @@ const SKILL_COLORS: Record<string, { border: string; bg: string; text: string; p
 };
 
 // ─── Shared styles ─────────────────────────────────────────────────────────────
-const cardCls = "rounded-2xl border border-slate-100 bg-white/80 p-6 backdrop-blur shadow-sm";
+const cardCls = "rounded-2xl border border-slate-100 bg-white/80 p-6  shadow-sm";
 const inputCls =
   "w-full rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white disabled:opacity-60 disabled:bg-slate-50";
 const submitBtnCls =
@@ -54,7 +54,7 @@ const submitBtnCls =
 // ─── Helper components ─────────────────────────────────────────────────────────
 function InfoCallout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3.5 backdrop-blur">
+    <div className="mb-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3.5 ">
       <svg className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
       </svg>
@@ -204,10 +204,10 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
         {/* ── Result panel ──────────────────────────────────────────────────── */}
         {result && (
           <div className={`mt-8 animate-scale-bounce rounded-2xl border p-6 ${result.score >= 70
-              ? "border-emerald-200 bg-emerald-50"
-              : result.score >= 40
-                ? "border-amber-200 bg-amber-50"
-                : "border-red-200 bg-red-50"
+            ? "border-emerald-200 bg-emerald-50"
+            : result.score >= 40
+              ? "border-amber-200 bg-amber-50"
+              : "border-red-200 bg-red-50"
             }`}>
             <div className="flex items-center gap-4">
               <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl ${result.score >= 70 ? "bg-emerald-100" : result.score >= 40 ? "bg-amber-100" : "bg-red-100"
@@ -236,7 +236,7 @@ export function ExerciseView({ exercise }: { exercise: ExerciseDoc }) {
         {/* ── Topic completion modal ─────────────────────────────────────────── */}
         {topicCompletion && (
           <div
-            className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm"
+            className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/50 px-4 "
             role="dialog"
             aria-modal="true"
             aria-labelledby="topic-complete-title"
@@ -356,8 +356,8 @@ function VocabularyExercise({
                   <label
                     key={opt}
                     className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition duration-150 ${selected
-                        ? "border-indigo-400 bg-indigo-50 text-indigo-900 shadow-sm shadow-indigo-100"
-                        : "border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30"
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-900 shadow-sm shadow-indigo-100"
+                      : "border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30"
                       }`}
                   >
                     <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${selected ? "border-indigo-500 bg-indigo-500" : "border-slate-300"

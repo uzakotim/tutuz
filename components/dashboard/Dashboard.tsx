@@ -341,7 +341,7 @@ export function Dashboard() {
               </div>
 
               {/* Today's exercises */}
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm backdrop-blur">
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
                     <h2 className="font-bold text-slate-900">Today&apos;s exercises</h2>
@@ -427,7 +427,7 @@ export function Dashboard() {
               <h1 className="text-2xl font-bold text-slate-900">Progress</h1>
 
               {/* Level progress */}
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm backdrop-blur">
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm ">
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">Current level</p>
@@ -480,7 +480,7 @@ export function Dashboard() {
               </div>
 
               {/* Skill progress */}
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm backdrop-blur">
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm ">
                 <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">Skill breakdown</h2>
                 <div className="space-y-4">
                   {EXERCISE_TYPES.map((type) => {
@@ -555,7 +555,7 @@ export function Dashboard() {
               </div>
 
               {/* Curriculum */}
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm backdrop-blur">
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm ">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                   <h2 className="font-bold text-slate-900">All topics</h2>
                   <div className="relative">
@@ -639,7 +639,7 @@ export function Dashboard() {
           {activeTab === "profile" && (
             <div className="space-y-5 animate-fade-in">
               {/* User card */}
-              <div className="flex items-center gap-4 rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm backdrop-blur">
+              <div className="flex items-center gap-4 rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm ">
                 <div
                   className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl font-bold text-white shadow-md"
                   style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}
@@ -653,7 +653,7 @@ export function Dashboard() {
               </div>
 
               {/* Level selector */}
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm backdrop-blur">
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm ">
                 <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">Your CEFR level</h2>
                 <div className="flex flex-wrap gap-2">
                   {LEVELS.map((level) => {
@@ -674,7 +674,7 @@ export function Dashboard() {
               </div>
 
               {/* Account actions */}
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm backdrop-blur space-y-2">
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm  space-y-2">
                 <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">Account</h2>
                 <button
                   type="button"
@@ -733,7 +733,7 @@ export function Dashboard() {
       {/* ── Password modal ─────────────────────────────────────────────────── */}
       {passwordModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4"
           role="dialog" aria-modal="true" aria-labelledby="password-title"
         >
           <div className="w-full max-w-md animate-scale-in glass-elevated rounded-3xl p-7">
