@@ -224,7 +224,7 @@ export function Dashboard() {
   if (authLoading || profile === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
       </div>
     );
   }
@@ -252,7 +252,7 @@ export function Dashboard() {
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 w-full bg-white backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 mt-2">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <img src="/icon.png" alt="Tutuz" className="h-8 w-8 rounded-xl" />
