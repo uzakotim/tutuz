@@ -252,7 +252,7 @@ export function Dashboard() {
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 w-full bg-white backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 safe-top">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <img src="/icon.png" alt="Tutuz" className="h-8 w-8 rounded-xl" />
