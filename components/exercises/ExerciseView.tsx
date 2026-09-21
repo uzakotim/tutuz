@@ -493,16 +493,78 @@ function ListeningExercise({
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [revealed, setRevealed] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [loadingAudio, setLoadingAudio] = useState(false);
 
-  function playAudio() {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(content.audioText);
-    utterance.lang = "tr-TR";
-    utterance.rate = 0.85;
-    setPlaying(true);
-    utterance.onend = () => setPlaying(false);
-    window.speechSynthesis.speak(utterance);
+  let audio: HTMLAudioElement | null = null;
+  let audioRequestId = 0;
+
+  async function playAudio() {
+    const requestId = ++audioRequestId;
+
+    try {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio = null;
+      }
+
+      setLoadingAudio(true);
+      setPlaying(true);
+
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: content.audioText,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate speech");
+      }
+
+      const blob = await response.blob();
+
+      // A newer play request was made while this one was loading.
+      if (requestId !== audioRequestId) {
+        return;
+      }
+
+
+      const audioUrl = URL.createObjectURL(blob);
+      const newAudio = new Audio(audioUrl);
+
+      // API generation is finished
+      setLoadingAudio(false);
+
+      audio = newAudio;
+
+      newAudio.onended = () => {
+        if (audio === newAudio) {
+          audio = null;
+          setPlaying(false);
+        }
+
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      newAudio.onerror = () => {
+        if (audio === newAudio) {
+          audio = null;
+          setPlaying(false);
+        }
+
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      await newAudio.play();
+    } catch (error) {
+      setLoadingAudio(false);
+      console.error("Audio playback error:", error);
+      setPlaying(false);
+    }
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -534,11 +596,16 @@ function ListeningExercise({
           <button
             type="button"
             onClick={playAudio}
-            disabled={playing}
+            disabled={playing || loadingAudio}
             className="relative flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg shadow-sky-400/30 transition duration-300 hover:scale-105 hover:shadow-xl disabled:opacity-80"
             style={{ background: "linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)" }}
           >
-            {playing ? (
+
+            {loadingAudio ? (
+              <div
+                className="h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent"
+              />
+            ) : playing ? (
               <svg className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
                 <path fillRule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z" clipRule="evenodd" />
               </svg>
@@ -551,7 +618,13 @@ function ListeningExercise({
         </div>
 
         <p className="text-sm text-slate-500">
-          {playing ? "Playing…" : "Tap to listen, then answer the questions below."}
+          {
+            loadingAudio
+              ? "Loading audio…"
+              : playing
+                ? "Playing…"
+                : "Tap to listen, then answer the questions below."
+          }
         </p>
 
         <button
