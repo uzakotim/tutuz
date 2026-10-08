@@ -177,6 +177,47 @@ Score based on grammar, vocabulary use, and whether the meaning matches the prom
   return JSON.parse(jsonStr) as { score: number; feedback: string };
 }
 
+export async function evaluateQAAnswers(
+  exerciseType: "grammar" | "reading" | "listening",
+  questions: Array<{ prompt: string; answer: string }>,
+  userAnswers: Record<number, string>,
+  context?: string, // passage / audioText / grammar explanation
+): Promise<{ score: number; feedback: string }> {
+  const qLines = questions
+    .map(
+      (q, i) =>
+        `Q${i + 1}: ${q.prompt}\nExpected: ${q.answer}\nStudent: ${userAnswers[i] ?? "(no answer)"}`,
+    )
+    .join("\n\n");
+
+  const contextBlock = context
+    ? `Context provided to student:\n"""\n${context}\n"""\n\n`
+    : "";
+
+  const response = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_prompt:
+        'You are an Uzbek language teacher evaluating student answers. Respond with JSON only: { "scores": [number], "feedback": "string" } where scores is an array of values 0–1 (one per question, 1=fully correct, 0.5=partially correct, 0=wrong) and feedback is a short encouraging overall comment.',
+      prompt: `Evaluate these ${exerciseType} answers. Accept answers that convey the same meaning even if worded differently. Minor spelling or transliteration differences are fine.\n\n${contextBlock}${qLines}`,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to evaluate answers");
+  }
+
+  const data: unknown = await response.json();
+  const text = getResponseText(data);
+  const jsonStr = extractJson(text);
+  const parsed = JSON.parse(jsonStr) as { scores: number[]; feedback: string };
+
+  const totalScore = parsed.scores.reduce((sum, s) => sum + s, 0);
+  const score = Math.round((totalScore / questions.length) * 100);
+  return { score, feedback: parsed.feedback };
+}
+
 export function normalizeAnswer(answer: string): string {
   return answer
     .toLowerCase()

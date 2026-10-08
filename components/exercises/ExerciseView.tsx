@@ -9,6 +9,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import {
   checkExactAnswer,
   checkPartialMatch,
+  evaluateQAAnswers,
   evaluateWritingAnswer,
 } from "@/lib/ai";
 import {
@@ -415,20 +416,33 @@ function GrammarExercise({
   completed: boolean;
 }) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
-
-  function handleSubmit(e: React.FormEvent) {
+  const [evaluating, setEvaluating] = useState(false);
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    let correct = 0;
-    content.questions.forEach((q, i) => {
-      if (checkExactAnswer(answers[i] ?? "", q.answer)) correct++;
-      else if (checkPartialMatch(answers[i] ?? "", q.answer)) correct += 0.5;
-    });
-    const score = Math.round((correct / content.questions.length) * 100);
-    void onSubmit(
-      JSON.stringify(answers),
-      score,
-      `Grammar: ${Math.floor(correct)}/${content.questions.length} correct.`,
-    );
+    setEvaluating(true);
+    try {
+      const result = await evaluateQAAnswers(
+        "grammar",
+        content.questions,
+        answers,
+        `Topic: ${content.topic}\n${content.explanation}`,
+      );
+      await onSubmit(JSON.stringify(answers), result.score, result.feedback);
+    } catch {
+      // Fallback to local matching if AI is unavailable
+      let correct = 0;
+      content.questions.forEach((q, i) => {
+        if (checkExactAnswer(answers[i] ?? "", q.answer)) correct++;
+        else if (checkPartialMatch(answers[i] ?? "", q.answer)) correct += 0.5;
+      });
+      const score = Math.round((correct / content.questions.length) * 100);
+      await onSubmit(
+        JSON.stringify(answers),
+        score,
+        `Grammar: ${Math.floor(correct)}/${content.questions.length} correct.`,
+      );
+    }
+    setEvaluating(false);
   }
 
   return (
@@ -438,7 +452,7 @@ function GrammarExercise({
         <p className="mt-2 text-sm text-slate-600 leading-relaxed">{content.explanation}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {content.questions.map((q, i) => (
           <div key={i} className={cardCls}>
             <p className="mb-2 font-semibold text-slate-800">{q.prompt}</p>
@@ -463,12 +477,12 @@ function GrammarExercise({
         {!completed && (
           <button
             type="submit"
-            disabled={submitting}
+            disabled={evaluating}
             className={submitBtnCls}
             style={{ background: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)" }}
           >
             <span className="relative z-10 flex items-center gap-2">
-              {submitting ? <><LoadingDots /> Checking…</> : "Check answers"}
+              {evaluating ? <><LoadingDots /> Checking…</> : "Check answers"}
             </span>
             <span aria-hidden="true" className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
           </button>
@@ -566,20 +580,34 @@ function ListeningExercise({
       setPlaying(false);
     }
   }
-
-  function handleSubmit(e: React.FormEvent) {
+  const [evaluating, setEvaluating] = useState(false);
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    let correct = 0;
-    content.questions.forEach((q, i) => {
-      if (checkExactAnswer(answers[i] ?? "", q.answer)) correct++;
-      else if (checkPartialMatch(answers[i] ?? "", q.answer)) correct += 0.5;
-    });
-    const score = Math.round((correct / content.questions.length) * 100);
-    void onSubmit(
-      JSON.stringify(answers),
-      score,
-      `Listening: ${Math.floor(correct)}/${content.questions.length} correct.`,
-    );
+    setEvaluating(true);
+    try {
+      const result = await evaluateQAAnswers(
+        "listening",
+        content.questions,
+        answers,
+        content.audioText,
+      );
+      await onSubmit(JSON.stringify(answers), result.score, result.feedback);
+    } catch {
+      // Fallback to local matching if AI is unavailable
+      let correct = 0;
+      content.questions.forEach((q, i) => {
+        if (checkExactAnswer(answers[i] ?? "", q.answer)) correct++;
+        else if (checkPartialMatch(answers[i] ?? "", q.answer)) correct += 0.5;
+      });
+      const score = Math.round((correct / content.questions.length) * 100);
+      await onSubmit(
+        JSON.stringify(answers),
+        score,
+        `Listening: ${Math.floor(correct)}/${content.questions.length} correct.`,
+      );
+    } finally {
+      setEvaluating(false);
+    }
   }
 
   return (
@@ -644,7 +672,7 @@ function ListeningExercise({
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {content.questions.map((q, i) => (
           <div key={i} className={cardCls}>
             <p className="mb-3 font-semibold text-slate-800">{q.prompt}</p>
@@ -661,12 +689,12 @@ function ListeningExercise({
         {!completed && (
           <button
             type="submit"
-            disabled={submitting}
+            disabled={evaluating}
             className={submitBtnCls}
             style={{ background: "linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)" }}
           >
             <span className="relative z-10 flex items-center gap-2">
-              {submitting ? <><LoadingDots /> Checking…</> : "Check answers"}
+              {evaluating ? <><LoadingDots /> Checking…</> : "Check answers"}
             </span>
             <span aria-hidden="true" className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
           </button>
@@ -691,19 +719,35 @@ function ReadingExercise({
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showTranslation, setShowTranslation] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  const [evaluating, setEvaluating] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    let correct = 0;
-    content.questions.forEach((q, i) => {
-      if (checkExactAnswer(answers[i] ?? "", q.answer)) correct++;
-      else if (checkPartialMatch(answers[i] ?? "", q.answer)) correct += 0.5;
-    });
-    const score = Math.round((correct / content.questions.length) * 100);
-    void onSubmit(
-      JSON.stringify(answers),
-      score,
-      `Reading: ${Math.floor(correct)}/${content.questions.length} correct.`,
-    );
+    setEvaluating(true);
+    try {
+      const result = await evaluateQAAnswers(
+        "reading",
+        content.questions,
+        answers,
+        content.passage,
+      );
+      await onSubmit(JSON.stringify(answers), result.score, result.feedback);
+    } catch {
+      // Fallback to local matching if AI is unavailable
+      let correct = 0;
+      content.questions.forEach((q, i) => {
+        if (checkExactAnswer(answers[i] ?? "", q.answer)) correct++;
+        else if (checkPartialMatch(answers[i] ?? "", q.answer)) correct += 0.5;
+      });
+      const score = Math.round((correct / content.questions.length) * 100);
+      await onSubmit(
+        JSON.stringify(answers),
+        score,
+        `Reading: ${Math.floor(correct)}/${content.questions.length} correct.`,
+      );
+    } finally {
+      setEvaluating(false);
+    }
   }
 
   return (
@@ -725,7 +769,7 @@ function ReadingExercise({
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {content.questions.map((q, i) => (
           <div key={i} className={cardCls}>
             <p className="mb-3 font-semibold text-slate-800">{q.prompt}</p>
@@ -742,18 +786,18 @@ function ReadingExercise({
         {!completed && (
           <button
             type="submit"
-            disabled={submitting}
+            disabled={evaluating}
             className={submitBtnCls}
             style={{ background: "linear-gradient(135deg, #059669 0%, #34D399 100%)" }}
           >
             <span className="relative z-10 flex items-center gap-2">
-              {submitting ? <><LoadingDots /> Checking…</> : "Check answers"}
+              {evaluating ? <><LoadingDots /> Evaluating…</> : "Check answers"}
             </span>
             <span aria-hidden="true" className="absolute inset-0 -translate-x-full skew-x-12 bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
           </button>
         )}
       </form>
-    </div>
+    </div >
   );
 }
 
